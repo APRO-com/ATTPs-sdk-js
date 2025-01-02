@@ -1,0 +1,50 @@
+{
+  "name": "ai-agent-sdk-nodejs",
+  "type": "module",
+  "version": "1.0.0",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ethers": "^6.13.4"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^3.12.1",
+    "@types/node": "^22.10.2",
+    "dotenv": "^16.4.7",
+    "eslint": "^9.17.0",
+    "typescript": "^5.7.2",
+    "unbuild": "^3.2.0",
+    "uuid": "^11.0.3",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  }
+}
