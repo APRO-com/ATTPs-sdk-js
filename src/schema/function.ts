@@ -1,4 +1,8 @@
-const createAndRegisterAgentAbi = [
+const converterAbi = [
+  'function converter(bytes calldata data) external pure returns (bytes memory)',
+]
+
+const agentProxyAbi = [
   {
     inputs: [{
       components: [
@@ -65,9 +69,6 @@ const createAndRegisterAgentAbi = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-]
-
-const verifyAbi = [
   {
     inputs: [
       {
@@ -134,14 +135,17 @@ const verifyAbi = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
+  'function agentManager() external view override returns (address)',
 ]
 
-const converterAbi = [
-  'function converter(bytes calldata data) external pure returns (bytes memory)',
+const agentManagerAbi = [
+  'function agentVersion() external pure returns (string memory)',
+  'function isValidMessageId(string memory messageId) external pure returns (bool)',
+  'function isValidSourceAgentId(string memory sourceAgentId) external view returns (bool)',
 ]
 
 export {
+  agentManagerAbi,
+  agentProxyAbi,
   converterAbi,
-  createAndRegisterAgentAbi,
-  verifyAbi,
 }
