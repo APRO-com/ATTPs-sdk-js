@@ -1,11 +1,9 @@
 import path from 'node:path'
-import { config } from 'dotenv'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
-    testTimeout: 30000,
-    env: config({ path: '.env' }).parsed,
+    testTimeout: 300000,
   },
   resolve: {
     alias: {

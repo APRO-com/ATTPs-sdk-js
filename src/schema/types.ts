@@ -1,22 +1,9 @@
 import type { Provider } from 'ethers'
 
-interface Proofs {
-  zkProof: string
-  merkleProof: string
-  signatureProof: string
-}
-
 interface Metadata {
   contentType: string
   encoding: string
   compression: string
-}
-
-interface MessagePayload {
-  data: string
-  dataHash: string
-  proofs: Proofs
-  metadata: Metadata
 }
 
 interface CreateManagerParams {
@@ -64,14 +51,14 @@ interface CreateAndRegisterAgentParams {
   transactionOptions?: TransactionOptions
 }
 
-interface MessagePayloadInput {
+interface MessagePayload {
   data: string
   signers: string[]
   metadata: Metadata
 }
 
 interface VerifyParams {
-  payload: MessagePayloadInput
+  payload: MessagePayload
   agent?: string
   digest?: string
   transactionOptions?: TransactionOptions
@@ -84,7 +71,6 @@ export {
   CreateConverterParams,
   CreateManagerParams,
   MessagePayload,
-  MessagePayloadInput,
   TransactionOptions,
   VerifyParams,
 }

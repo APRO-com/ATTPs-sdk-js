@@ -34,17 +34,18 @@
     "lint:fix": "eslint --fix .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "helper": "cross-env HELPER_MODE=true vitest run helper",
     "typecheck": "tsc --noEmit",
     "up": "taze -I"
   },
   "dependencies": {
     "ethers": "^6.13.5",
-    "valibot": "^1.0.0-beta.10"
+    "valibot": "^1.0.0-beta.11"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^3.12.1",
     "@types/node": "^22.10.5",
-    "dotenv": "^16.4.7",
+    "cross-env": "^7.0.3",
     "eslint": "^9.17.0",
     "taze": "^0.18.0",
     "typescript": "^5.7.2",

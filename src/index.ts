@@ -1,10 +1,9 @@
 import type { AgentSettings, CreateAgentParams, CreateAndRegisterAgentParams, CreateManagerParams, TransactionOptions, VerifyParams } from './schema/types'
-import { AbiCoder, Contract, getDefaultProvider, keccak256, Signature, Wallet } from 'ethers'
+import { AbiCoder, Contract, getDefaultProvider, keccak256, Wallet } from 'ethers'
 import * as v from 'valibot'
 import { AiAgentError } from './errors'
 import { agentManagerAbi, agentProxyAbi, converterAbi } from './schema/function'
 import { CreateAgentSchema, CreateAndRegisterAgentSchema, CreateManagerSchema, VerifySchema } from './schema/validator'
-import { prependHexPrefix } from './utils'
 
 const ZeroAddress = '0x0000000000000000000000000000000000000000'
 
@@ -63,6 +62,9 @@ function createManager(params: CreateManagerParams) {
         },
       }, transactionOptions)
     },
+    getNextNonce: async () => {
+      return await provider.getTransactionCount(wallet.address)
+    },
   }
 }
 
@@ -108,8 +110,8 @@ function createAgent(params: CreateAgentParams) {
         dataHash = keccak256(await converter(payload.data))
       }
 
-      const signatureProof = await encodeSignaturesToString(payload.data, payload.signers)
-      return await proxyContract.verify(agent, prependHexPrefix(digest), {
+      const signatureProof = await encodeSignaturesToString(dataHash, payload.signers)
+      return await proxyContract.verify(agent, digest, {
         data: payload.data,
         dataHash,
         proofs: {
@@ -120,18 +122,15 @@ function createAgent(params: CreateAgentParams) {
         metadata: payload.metadata,
       }, transactionOptions)
     },
+    getNextNonce: async () => {
+      return await provider.getTransactionCount(wallet.address)
+    },
   }
 }
 
-async function encodeSignaturesToString(data: string, signers: string[]): Promise<string> {
+async function encodeSignaturesToString(dataHash: string, signers: string[]): Promise<string> {
   try {
-    const signatures = await Promise.all(signers.map(
-      async (s) => {
-        const wallet = new Wallet(s)
-        const sig = await wallet.signMessage(data)
-        return Signature.from(sig)
-      },
-    ))
+    const signatures = signers.map(s => new Wallet(s).signingKey.sign(dataHash))
 
     const rs = signatures.map(sig => sig.r)
     const ss = signatures.map(sig => sig.s)

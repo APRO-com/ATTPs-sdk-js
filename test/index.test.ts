@@ -1,28 +1,24 @@
-import type { AgentSettings, MessagePayloadInput, TransactionOptions } from '@/schema/types'
+import type { AgentSettings, MessagePayload, TransactionOptions } from '@/schema/types'
 import { createAgent, createManager } from '@/index'
 import { uuidv4 } from '@/utils'
-import { getDefaultProvider, parseUnits, Wallet } from 'ethers'
+import { hexlify, parseUnits, toUtf8Bytes } from 'ethers'
 import { describe, expect, it } from 'vitest'
+import testData from '../data.json'
 
 describe('create and register agent', () => {
-  const { RPC_URL, AGENT_PROXY, PRIVATE_KEY, CONVERTER, SIGNERS } = process.env
-  if (!RPC_URL || !AGENT_PROXY || !PRIVATE_KEY || !CONVERTER || !SIGNERS) {
-    throw new Error('Missing environment variables, make sure to update .env file before running tests')
-  }
+  const { rpcUrl, agentProxy, privateKey, apro, custom } = testData
 
   it('with fully customized agent settings and transaction options', async () => {
     // Given
-    const provider = getDefaultProvider(RPC_URL)
-    const wallet = new Wallet(PRIVATE_KEY, provider)
-    const nonce = await provider.getTransactionCount(wallet.address)
-
-    const manager = createManager({ proxyAddress: AGENT_PROXY, rpcUrl: RPC_URL, privateKey: PRIVATE_KEY })
+    const { converter, signerAddresses } = apro
+    const manager = createManager({ proxyAddress: agentProxy, rpcUrl, privateKey })
+    const nonce = await manager.getNextNonce()
 
     // When
     const agentSettings: AgentSettings = {
-      signers: SIGNERS.split(','),
-      threshold: 2,
-      converterAddress: CONVERTER,
+      signers: signerAddresses,
+      threshold: 3,
+      converterAddress: converter,
       agentHeader: {
         // version: '1.0',
         messageId: uuidv4(),
@@ -41,21 +37,23 @@ describe('create and register agent', () => {
       gasLimit: BigInt(2000000),
     }
     const tx = await manager.createAndRegisterAgent({ agentSettings, transactionOptions })
+    console.log('txHash', tx.hash)
 
     // Then
-    expect(tx).toBeDefined()
-    console.log('txHash', tx.hash)
+    const receipt = await tx.wait()
+    expect(receipt.status).toBe(1)
   })
 
   it('with partial customized agent settings and transaction options', async () => {
     // Given
-    const manager = createManager({ proxyAddress: AGENT_PROXY, rpcUrl: RPC_URL, privateKey: PRIVATE_KEY })
+    const { converter, signerAddresses } = custom
+    const manager = createManager({ proxyAddress: agentProxy, rpcUrl, privateKey })
 
     // When
     const agentSettings: AgentSettings = {
-      signers: SIGNERS.split(','),
-      threshold: 2,
-      converterAddress: CONVERTER,
+      signers: signerAddresses,
+      threshold: 3,
+      converterAddress: converter,
       agentHeader: {
         sourceAgentName: 'APRO Data Pull',
         targetAgentId: uuidv4(),
@@ -68,21 +66,23 @@ describe('create and register agent', () => {
       gasPrice: parseUnits('1', 'gwei'),
     }
     const tx = await manager.createAndRegisterAgent({ agentSettings, transactionOptions })
+    console.log('txHash', tx.hash)
 
     // Then
-    expect(tx).toBeDefined()
-    console.log('txHash', tx.hash)
+    const receipt = await tx.wait()
+    expect(receipt.status).toBe(1)
   })
 
   it('with partial customized agent settings and default transaction options', async () => {
     // Given
-    const manager = createManager({ proxyAddress: AGENT_PROXY, rpcUrl: RPC_URL, privateKey: PRIVATE_KEY })
+    const { converter, signerAddresses } = apro
+    const manager = createManager({ proxyAddress: agentProxy, rpcUrl, privateKey })
 
     // When
     const agentSettings: AgentSettings = {
-      signers: SIGNERS.split(','),
-      threshold: 2,
-      converterAddress: CONVERTER,
+      signers: signerAddresses,
+      threshold: 3,
+      converterAddress: converter,
       agentHeader: {
         sourceAgentName: 'APRO Data Pull',
         targetAgentId: uuidv4(),
@@ -92,34 +92,33 @@ describe('create and register agent', () => {
       },
     }
     const tx = await manager.createAndRegisterAgent({ agentSettings })
+    console.log('txHash', tx.hash)
 
     // Then
-    expect(tx).toBeDefined()
-    console.log('txHash', tx.hash)
+    const receipt = await tx.wait()
+    expect(receipt.status).toBe(1)
   })
 })
 
-describe('agent operations', () => {
-  const { RPC_URL, AGENT_PROXY, PRIVATE_KEY, CONVERTER, AGENT_ADDRESS, CONFIG_DIGEST, SIGNER_PRIVATE_KEYS } = process.env
-  if (!RPC_URL || !AGENT_PROXY || !PRIVATE_KEY || !CONVERTER || !AGENT_ADDRESS || !CONFIG_DIGEST || !SIGNER_PRIVATE_KEYS) {
-    throw new Error('Missing environment variables, make sure to update .env file before running tests')
-  }
+describe('verify a report', () => {
+  const { rpcUrl, agentProxy, privateKey, apro, custom } = testData
 
-  it('should verify a report', async () => {
+  it('should verify an apro data pull report', async () => {
     // Given
+    const { converter, agentAddress, configDigest, signerPrivateKeys } = apro
     const agent = createAgent({
-      proxyAddress: AGENT_PROXY,
-      converterAddress: CONVERTER,
-      rpcUrl: RPC_URL,
-      privateKey: PRIVATE_KEY,
-      agent: AGENT_ADDRESS,
-      digest: CONFIG_DIGEST,
+      proxyAddress: agentProxy,
+      converterAddress: converter,
+      rpcUrl,
+      privateKey,
+      agent: agentAddress,
+      digest: configDigest,
     })
 
-    const fullReport = '0x0006e706cf7ab41fa599311eb3de68be869198ce62aef1cd079475ca50e5b3f6000000000000000000000000000000000000000000000000000000000398b30d000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000002a0000101000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001200003665949c883f9e0f6f002eac32e00bd59dfe6c34e92a91c37d6a8322d64890000000000000000000000000000000000000000000000000000000067767b9b0000000000000000000000000000000000000000000000000000000067767b9b0000000000000000000000000000000000000000000000000000034b059c9b6000000000000000000000000000000000000000000000000004db732547630000000000000000000000000000000000000000000000000000000000006777cd1b000000000000000000000000000000000000000000001478388b5e1beec1800000000000000000000000000000000000000000000000147837deb4aaa6ac0000000000000000000000000000000000000000000000001478416ff25062d38000000000000000000000000000000000000000000000000000000000000000000328383610077fc05b53b891b0cb7db3cefc6140acdc3760cc068befe3eb12316552c7948ce1875c1673aaa6b0a2ea5043e85be8475bedda78536ac402a1f9aa311a3400aa138e130775513f13ebd0f6c0de4de7d0f85434a30042c3fefe979abe00000000000000000000000000000000000000000000000000000000000000030cf76ab98d3da13106e7c08b7143122096038a468309664def33b28f5208e1e9489362293b5ffab2152fe59fb5fa83eadb12b3075ea8aaca64cbde3349c6b332370b3510f70b6d17855be8241426718c119a4bbb2d0dc2b5af00b7e0860e9721'
-    const payload: MessagePayloadInput = {
+    const fullReport = '0x0006e706cf7ab41fa599311eb3de68be869198ce62aef1cd079475ca50e5b3f60000000000000000000000000000000000000000000000000000000003e05306000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000002a0000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001200003665949c883f9e0f6f002eac32e00bd59dfe6c34e92a91c37d6a8322d648900000000000000000000000000000000000000000000000000000000677cdb6800000000000000000000000000000000000000000000000000000000677cdb6800000000000000000000000000000000000000000000000000000320e6d7a71c00000000000000000000000000000000000000000000000004db73254763000000000000000000000000000000000000000000000000000000000000677e2ce800000000000000000000000000000000000000000000158bcf23916e0934c00000000000000000000000000000000000000000000000158bceb5ca0b25a5800000000000000000000000000000000000000000000000158bcff0ea393d3940000000000000000000000000000000000000000000000000000000000000000003c5096aec1e09c4f31e18977cbf116a6019890f6ccfee73d33d4cc692c9a4158eba28489661a3dd78bfbe2491e40bd801279a5cff08a53ce0f3191573cb66ab8ddbf7a60a80db2a9d17bc79c8a96a0199c729311158e3eb9dc1f7f4e0e00cdcdb0000000000000000000000000000000000000000000000000000000000000003586101390e85a09adfe72d20a588685701dee06bfc734d632af202e2c0e1be792eae6b4b53fc6b851a9651c07540631d4a60eee517a9ea1539627e19574b59c916a8a89bc66211d992d98512089c828716bf95962c3355139b7f31e64aa4bd14'
+    const payload: MessagePayload = {
       data: fullReport,
-      signers: SIGNER_PRIVATE_KEYS.split(','),
+      signers: signerPrivateKeys.slice(0, 3),
       metadata: {
         contentType: 'application/abi',
         encoding: 'null',
@@ -128,9 +127,49 @@ describe('agent operations', () => {
     }
 
     // When
-    const txHash = await agent.verify({ payload })
+    const tx = await agent.verify({ payload })
+    console.log('txHash', tx.hash)
 
     // Then
-    console.log('txHash', txHash)
+    const receipt = await tx.wait()
+    expect(receipt.status).toBe(1)
+  })
+
+  it('should verify a custom report', async () => {
+    // Given
+    const { converter, agentAddress, configDigest, signerPrivateKeys } = custom
+    const agent = createAgent({
+      proxyAddress: agentProxy,
+      converterAddress: converter,
+      rpcUrl,
+      privateKey,
+      agent: agentAddress,
+      digest: configDigest,
+    })
+    const nonce = await agent.getNextNonce()
+
+    const fullReport = hexlify(toUtf8Bytes('hello world'))
+    const payload: MessagePayload = {
+      data: fullReport,
+      signers: signerPrivateKeys.slice(0, 3),
+      metadata: {
+        contentType: 'application/abi',
+        encoding: 'null',
+        compression: 'null',
+      },
+    }
+    const transactionOptions: TransactionOptions = {
+      nonce,
+      gasPrice: parseUnits('1', 'gwei'),
+      gasLimit: BigInt(500000),
+    }
+
+    // When
+    const tx = await agent.verify({ payload, transactionOptions })
+    console.log('txHash', tx.hash)
+
+    // Then
+    const receipt = await tx.wait()
+    expect(receipt.status).toBe(1)
   })
 })
