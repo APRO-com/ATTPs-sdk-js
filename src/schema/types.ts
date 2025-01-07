@@ -1,5 +1,3 @@
-import type { Provider } from 'ethers'
-
 interface Metadata {
   contentType: string
   encoding: string
@@ -10,11 +8,6 @@ interface CreateManagerParams {
   rpcUrl: string
   privateKey: string
   proxyAddress: string
-}
-
-interface CreateConverterParams {
-  converterAddress: string
-  provider: Provider
 }
 
 interface CreateAgentParams extends CreateManagerParams {
@@ -28,7 +21,7 @@ interface AgentSettings {
   threshold: number
   converterAddress: string
   agentHeader: {
-    // version?: string
+    version?: string
     messageId?: string
     sourceAgentId?: string
     sourceAgentName: string
@@ -68,7 +61,6 @@ export {
   AgentSettings,
   CreateAgentParams,
   CreateAndRegisterAgentParams,
-  CreateConverterParams,
   CreateManagerParams,
   MessagePayload,
   TransactionOptions,

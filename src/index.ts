@@ -45,8 +45,11 @@ function createManager(params: CreateManagerParams) {
       const { agentSettings, transactionOptions } = p.output
       const { agentHeader } = agentSettings
       const agentManagerContract = await agentManager()
-      const version = await agentVersion(agentManagerContract)
+      if (!agentHeader.version) {
+        agentHeader.version = await agentVersion(agentManagerContract)
+      }
 
+      // TODO: 是否保留这两个检查
       if (!await isValidMessageId(agentManagerContract, agentHeader.messageId)) {
         throw new AiAgentError('PARAMETER_ERROR', 'Invalid message id, please provide a new one')
       }
@@ -54,13 +57,7 @@ function createManager(params: CreateManagerParams) {
         throw new AiAgentError('PARAMETER_ERROR', 'Invalid source agent id, please provide a new one')
       }
 
-      return await proxyContract.createAndRegisterAgent({
-        ...agentSettings,
-        agentHeader: {
-          ...agentHeader,
-          version,
-        },
-      }, transactionOptions)
+      return await proxyContract.createAndRegisterAgent(agentSettings, transactionOptions)
     },
     getNextNonce: async () => {
       return await provider.getTransactionCount(wallet.address)
@@ -130,6 +127,7 @@ function createAgent(params: CreateAgentParams) {
 
 async function encodeSignaturesToString(dataHash: string, signers: string[]): Promise<string> {
   try {
+    // TODO: 是否要全局设置 signers private keys
     const signatures = signers.map(s => new Wallet(s).signingKey.sign(dataHash))
 
     const rs = signatures.map(sig => sig.r)

@@ -20,7 +20,7 @@ describe('create and register agent', () => {
       threshold: 3,
       converterAddress: converter,
       agentHeader: {
-        // version: '1.0',
+        version: '1.0',
         messageId: uuidv4(),
         sourceAgentId: uuidv4(),
         sourceAgentName: 'APRO Data Pull',

@@ -63,13 +63,12 @@ const CreateAndRegisterAgentSchema = v.object({
     ),
     converterAddress: EthAddressSchema('converterAddress'),
     agentHeader: v.object({
-      // version: v.optional(
-      //   v.pipe(
-      //     v.string('version must be a string'),
-      //     v.trim(),
-      //   ),
-      //   '1.0',
-      // ),
+      version: v.optional(
+        v.pipe(
+          v.string('version must be a string'),
+          v.trim(),
+        ),
+      ),
       messageId: v.optional(
         v.pipe(
           v.string('messageId must be a string'),
