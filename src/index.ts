@@ -99,18 +99,19 @@ function createAgent(params: CreateAgentParams) {
         throw new AiAgentError('PARAMETER_ERROR', 'Agent and settings digest must be provided, you can set them globally or pass them as arguments')
       }
 
-      let dataHash
-      if (!converterAddress || ZeroAddress === converterAddress) {
-        dataHash = keccak256(payload.data)
-      }
-      else {
-        dataHash = keccak256(await converter(payload.data))
+      if (!payload.dataHash) {
+        if (ZeroAddress === converterAddress) {
+          payload.dataHash = keccak256(payload.data)
+        }
+        else {
+          payload.dataHash = keccak256(await converter(payload.data))
+        }
       }
 
-      const signatureProof = await encodeSignaturesToString(dataHash, payload.signers)
+      const signatureProof = await encodeSignaturesToString(payload.dataHash, payload.signers)
       return await proxyContract.verify(agent, digest, {
         data: payload.data,
-        dataHash,
+        dataHash: payload.dataHash,
         proofs: {
           zkProof: '0x',
           merkleProof: '0x',

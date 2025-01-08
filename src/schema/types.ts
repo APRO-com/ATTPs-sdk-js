@@ -46,6 +46,7 @@ interface CreateAndRegisterAgentParams {
 
 interface MessagePayload {
   data: string
+  dataHash?: string
   signers: string[]
   metadata: Metadata
 }

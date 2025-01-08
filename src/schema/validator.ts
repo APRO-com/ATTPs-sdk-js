@@ -164,6 +164,14 @@ const VerifySchema = v.object({
       v.transform(prependHexPrefix),
       v.minLength(1, 'data must be at least 1 character long'),
     ),
+    dataHash: v.optional(
+      v.pipe(
+        v.string('dataHash must be a string'),
+        v.trim(),
+        v.transform(prependHexPrefix),
+        v.length(66, 'dataHash must be 66 characters long, including 0x prefix'),
+      ),
+    ),
     signers: v.pipe(
       v.array(v.string('signers element must be a string')),
     ),

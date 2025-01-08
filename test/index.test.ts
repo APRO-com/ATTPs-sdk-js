@@ -1,7 +1,7 @@
 import type { AgentSettings, MessagePayload, TransactionOptions } from '@/schema/types'
 import { createAgent, createManager } from '@/index'
 import { uuidv4 } from '@/utils'
-import { hexlify, parseUnits, toUtf8Bytes } from 'ethers'
+import { hexlify, keccak256, parseUnits, toUtf8Bytes } from 'ethers'
 import { describe, expect, it } from 'vitest'
 import testData from '../data.json'
 
@@ -148,9 +148,11 @@ describe('verify a report', () => {
     })
     const nonce = await agent.getNextNonce()
 
-    const fullReport = hexlify(toUtf8Bytes('hello world'))
+    const data = hexlify(toUtf8Bytes('hello world'))
+    const dataHash = keccak256(data)
     const payload: MessagePayload = {
-      data: fullReport,
+      data,
+      dataHash,
       signers: signerPrivateKeys.slice(0, 3),
       metadata: {
         contentType: 'application/abi',
