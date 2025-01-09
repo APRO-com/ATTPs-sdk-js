@@ -1,4 +1,4 @@
-import type { AgentSettings, MessagePayload, TransactionOptions } from '@/schema/types'
+import type { AgentSettings, MessagePayload, TransactionOptions } from '@/index'
 import AgentSDK from '@/index'
 import { uuidv4 } from '@/utils'
 import { hexlify, keccak256, parseUnits, toUtf8Bytes } from 'ethers'
@@ -42,7 +42,7 @@ describe('create and register agent', async () => {
 
     // Then
     const receipt = await tx.wait()
-    expect(receipt.status).toBe(1)
+    expect(receipt?.status).toBe(1)
   })
 
   it('with partial customized agent settings and transaction options', async () => {
@@ -71,7 +71,7 @@ describe('create and register agent', async () => {
 
     // Then
     const receipt = await tx.wait()
-    expect(receipt.status).toBe(1)
+    expect(receipt?.status).toBe(1)
   })
 
   it('with partial customized agent settings and default transaction options', async () => {
@@ -97,7 +97,7 @@ describe('create and register agent', async () => {
 
     // Then
     const receipt = await tx.wait()
-    expect(receipt.status).toBe(1)
+    expect(receipt?.status).toBe(1)
   })
 })
 
@@ -148,7 +148,7 @@ describe('verify a report', () => {
 
     // Then
     const receipt = await tx.wait()
-    expect(receipt.status).toBe(1)
+    expect(receipt?.status).toBe(1)
   })
 
   it('should verify a custom report', async () => {
@@ -201,6 +201,6 @@ describe('verify a report', () => {
 
     // Then
     const receipt = await tx.wait()
-    expect(receipt.status).toBe(1)
+    expect(receipt?.status).toBe(1)
   })
 })

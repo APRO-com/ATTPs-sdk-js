@@ -1,4 +1,4 @@
-import type { Provider } from 'ethers'
+import type { ContractTransactionResponse, Provider } from 'ethers'
 import type { AgentSDKProps, CreateAndRegisterAgentParams, VerifyParams } from './schema/types'
 import { Contract, getDefaultProvider, keccak256, Wallet } from 'ethers'
 import * as v from 'valibot'
@@ -53,7 +53,7 @@ class AgentSDK {
     }
   }
 
-  public createAndRegisterAgent = async (params: CreateAndRegisterAgentParams) => {
+  public createAndRegisterAgent = async (params: CreateAndRegisterAgentParams): Promise<ContractTransactionResponse> => {
     const p = v.safeParse(CreateAndRegisterAgentSchema, params)
     if (!p.success) {
       throw new AiAgentError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
@@ -71,7 +71,7 @@ class AgentSDK {
     return await this.proxyContract.createAndRegisterAgent(agentSettings, transactionOptions)
   }
 
-  public verify = async (params: VerifyParams) => {
+  public verify = async (params: VerifyParams): Promise<ContractTransactionResponse> => {
     const p = v.safeParse(VerifySchema, params)
     if (!p.success) {
       throw new AiAgentError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
