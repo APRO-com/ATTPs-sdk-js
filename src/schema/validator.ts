@@ -1,6 +1,6 @@
 import { isAddress } from 'ethers'
 import * as v from 'valibot'
-import { isValidUUIDV4, prependHexPrefix, uuidv4 } from '../utils'
+import { cleanHexPrefix, isValidUUIDV4, prependHexPrefix, uuidv4 } from '../utils'
 
 function EthAddressSchema(name: string) {
   return v.pipe(
@@ -20,10 +20,11 @@ const CreateManagerSchema = v.object({
   privateKey: v.pipe(
     v.string('privateKey must a string'),
     v.trim(),
+    v.transform(cleanHexPrefix),
     v.regex(/^[0-9a-f]{64}$/i, 'privateKey must be a valid ethereum private key'),
   ),
   proxyAddress: EthAddressSchema('proxyAddress'),
-})
+}, 'createManagerParams must be an object')
 
 const TransactionOptionsSchema = v.optional(
   v.object({
@@ -36,7 +37,7 @@ const TransactionOptionsSchema = v.optional(
     ),
     gasLimit: v.optional(
       v.pipe(
-        v.bigint('gasLimit must be a number'),
+        v.bigint('gasLimit must be a bigint'),
         v.minValue(BigInt(0), 'gasLimit must be greater than or equal to 0'),
       ),
     ),
@@ -46,16 +47,17 @@ const TransactionOptionsSchema = v.optional(
         v.minValue(BigInt(0), 'gasPrice must be greater than or equal to 0'),
       ),
     ),
-  }),
+  }, 'transactionOptions must be an object'),
   {},
 )
 
 const CreateAndRegisterAgentSchema = v.object({
   agentSettings: v.object({
     signers: v.pipe(
-      v.array(v.string('signers element must be a string')),
+      v.array(v.string('signers element must be a string'), 'signers must be an array of strings'),
       v.transform(arr => arr.map(prependHexPrefix)),
       v.check(arr => arr.every(isAddress), 'signers elements must be valid ethereum addresses'),
+      v.minLength(1, 'signers must have at least 1 element'),
     ),
     threshold: v.pipe(
       v.number('threshold must be a number'),
@@ -79,7 +81,7 @@ const CreateAndRegisterAgentSchema = v.object({
       ),
       sourceAgentId: v.optional(
         v.pipe(
-          v.string('messageId must be a string'),
+          v.string('sourceAgentId must be a string'),
           v.trim(),
           v.check(v => isValidUUIDV4(v), 'sourceAgentId must be a valid v4 uuid'),
         ),
@@ -91,7 +93,7 @@ const CreateAndRegisterAgentSchema = v.object({
         v.minLength(1, 'sourceAgentName must be at least 1 character long'),
       ),
       targetAgentId: v.pipe(
-        v.string('messageId must be a string'),
+        v.string('targetAgentId must be a string'),
         v.trim(),
         v.check(v => isValidUUIDV4(v), 'targetAgentId must be a valid v4 uuid'),
       ),
@@ -117,8 +119,8 @@ const CreateAndRegisterAgentSchema = v.object({
         v.integer('ttl must be an integer'),
         v.minValue(0, 'ttl must be greater than or equal to 0'),
       ),
-    }),
-  }),
+    }, 'agentHeader must be an object'),
+  }, 'agentSettings must be an object'),
   transactionOptions: TransactionOptionsSchema,
 })
 
@@ -173,7 +175,10 @@ const VerifySchema = v.object({
       ),
     ),
     signers: v.pipe(
-      v.array(v.string('signers element must be a string')),
+      v.array(v.string('signers element must be a string'), 'signers must be an array of strings'),
+      v.transform(arr => arr.map(cleanHexPrefix)),
+      v.check(arr => arr.every(s => /^[0-9a-f]{64}$/i.test(s)), 'signers elements must be valid ethereum private keys'),
+      v.minLength(1, 'signers must have at least 1 element'),
     ),
     metadata: v.optional(
       v.object({
@@ -201,15 +206,15 @@ const VerifySchema = v.object({
           ),
           'null',
         ),
-      }),
+      }, 'metadata must be an object'),
       {
         contentType: 'application/abi',
         encoding: 'null',
         compression: 'null',
       },
     ),
-  }),
-})
+  }, 'payload must be an object'),
+}, 'verifyParams must be an object')
 
 export {
   CreateAgentSchema,
