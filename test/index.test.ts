@@ -24,7 +24,7 @@ describe('create and register agent', async () => {
       agentHeader: {
         messageId: uuidv4(),
         sourceAgentId: uuidv4(),
-        sourceAgentName: 'APRO Data Pull',
+        sourceAgentName: 'AI Agent SDK JS',
         targetAgentId: uuidv4(),
         timestamp: Math.floor(Date.now() / 1000),
         messageType: 0,
@@ -56,7 +56,7 @@ describe('create and register agent', async () => {
       threshold: 3,
       converterAddress: converter,
       agentHeader: {
-        sourceAgentName: 'APRO Data Pull',
+        sourceAgentName: 'AI Agent SDK JS',
         targetAgentId: uuidv4(),
         messageType: 0,
         priority: 1,
@@ -85,7 +85,7 @@ describe('create and register agent', async () => {
       threshold: 3,
       converterAddress: converter,
       agentHeader: {
-        sourceAgentName: 'APRO Data Pull',
+        sourceAgentName: 'AI Agent SDK JS',
         targetAgentId: uuidv4(),
         messageType: 0,
         priority: 1,

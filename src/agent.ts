@@ -30,6 +30,7 @@ class AgentSDK {
   private provider: Provider
   private proxyContract: Contract
   private converterContract?: Contract
+  private ManagerContract?: Contract
 
   constructor(props: AgentSDKProps) {
     const p = v.safeParse(AgentSDKPropsSchema, props)
@@ -60,7 +61,7 @@ class AgentSDK {
 
     const { agentSettings, transactionOptions } = p.output
     const { agentHeader } = agentSettings as FullAgentSettings
-    const managerContract = await this.getAgentManager()
+    const managerContract = await this.getManagerContract()
     agentHeader.version = await managerContract.agentVersion()
 
     if (!await managerContract.isValidSourceAgentId(agentHeader.sourceAgentId)) {
@@ -102,9 +103,14 @@ class AgentSDK {
     return await this.converterContract!.converter(data)
   }
 
-  private getAgentManager = async () => {
+  private getManagerContract = async () => {
+    if (this.ManagerContract) {
+      return this.ManagerContract
+    }
+
     const managerAddress = await this.proxyContract.agentManager()
-    return new Contract(managerAddress, agentManagerAbi, this.provider)
+    this.ManagerContract = new Contract(managerAddress, agentManagerAbi, this.provider)
+    return this.ManagerContract
   }
 }
 
