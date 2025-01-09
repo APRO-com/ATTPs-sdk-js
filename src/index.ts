@@ -1,4 +1,4 @@
-import type { AgentSettings, CreateAgentParams, CreateAndRegisterAgentParams, CreateManagerParams, TransactionOptions, VerifyParams } from './schema/types'
+import type { AgentSettings, CreateAgentParams, CreateAndRegisterAgentParams, CreateManagerParams, FullAgentSettings, TransactionOptions, VerifyParams } from './schema/types'
 import { AbiCoder, Contract, getDefaultProvider, keccak256, Wallet } from 'ethers'
 import * as v from 'valibot'
 import { AiAgentError } from './errors'
@@ -27,10 +27,6 @@ function createManager(params: CreateManagerParams) {
     return await managerContract.agentVersion()
   }
 
-  async function isValidMessageId(managerContract: Contract, messageId: string): Promise<boolean> {
-    return await managerContract.isValidMessageId(messageId)
-  }
-
   async function isValidSourceAgentId(managerContract: Contract, sourceAgentId: string): Promise<boolean> {
     return await managerContract.isValidSourceAgentId(sourceAgentId)
   }
@@ -43,16 +39,10 @@ function createManager(params: CreateManagerParams) {
       }
 
       const { agentSettings, transactionOptions } = p.output
-      const { agentHeader } = agentSettings
+      const { agentHeader } = agentSettings as FullAgentSettings
       const agentManagerContract = await agentManager()
-      if (!agentHeader.version) {
-        agentHeader.version = await agentVersion(agentManagerContract)
-      }
+      agentHeader.version = await agentVersion(agentManagerContract)
 
-      // TODO: 是否保留这两个检查
-      if (!await isValidMessageId(agentManagerContract, agentHeader.messageId)) {
-        throw new AiAgentError('PARAMETER_ERROR', 'Invalid message id, please provide a new one')
-      }
       if (!await isValidSourceAgentId(agentManagerContract, agentHeader.sourceAgentId)) {
         throw new AiAgentError('PARAMETER_ERROR', 'Invalid source agent id, please provide a new one')
       }

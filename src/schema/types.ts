@@ -33,6 +33,23 @@ interface AgentSettings {
   }
 }
 
+interface FullAgentSettings {
+  signers: string[]
+  threshold: number
+  converterAddress: string
+  agentHeader: {
+    version?: string
+    messageId: string
+    sourceAgentId: string
+    sourceAgentName: string
+    targetAgentId: string
+    timestamp: number
+    messageType: number
+    priority: number
+    ttl: number
+  }
+}
+
 interface TransactionOptions {
   nonce?: number
   gasLimit?: bigint
@@ -63,6 +80,7 @@ export {
   CreateAgentParams,
   CreateAndRegisterAgentParams,
   CreateManagerParams,
+  FullAgentSettings,
   MessagePayload,
   TransactionOptions,
   VerifyParams,
