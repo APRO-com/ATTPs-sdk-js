@@ -1,5 +1,5 @@
 import type { AgentSettings, MessagePayload, TransactionOptions } from '@/index'
-import AgentSDK, { parseNewAgentAddress } from '@/index'
+import { AgentSDK, parseNewAgentAddress } from '@/index'
 import { uuidv4 } from '@/utils'
 import { hexlify, keccak256, parseUnits, toUtf8Bytes } from 'ethers'
 import { describe, expect, it } from 'vitest'
