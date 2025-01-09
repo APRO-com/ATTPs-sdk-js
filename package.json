@@ -34,7 +34,6 @@
     "lint:fix": "eslint --fix .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "helper": "cross-env HELPER_MODE=true vitest run helper",
     "typecheck": "tsc --noEmit",
     "up": "taze -I"
   },
@@ -43,12 +42,12 @@
     "valibot": "^1.0.0-beta.11"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^3.12.1",
+    "@antfu/eslint-config": "^3.12.2",
     "@types/node": "^22.10.5",
     "cross-env": "^7.0.3",
     "eslint": "^9.17.0",
     "taze": "^0.18.0",
-    "typescript": "^5.7.2",
+    "typescript": "^5.7.3",
     "unbuild": "^3.2.0",
     "vite": "^6.0.7",
     "vitest": "^2.1.8"
