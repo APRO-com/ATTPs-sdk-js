@@ -1,30 +1,15 @@
 import { isAddress } from 'ethers'
 import * as v from 'valibot'
-import { cleanHexPrefix, isValidUUIDV4, prependHexPrefix, uuidv4 } from '../utils'
+import { cleanHexPrefix, isValidUUIDV4, prependHexPrefix, standardizeV, uuidv4 } from '../utils'
 
-function EthAddressSchema(name: string) {
+function ethAddressSchema(name: string) {
   return v.pipe(
     v.string(`${name} must be a string`),
     v.trim(),
     v.transform(prependHexPrefix),
-    v.check(isAddress, `${name} must be a valid ethereum address`),
+    v.check<string, string>(isAddress, `${name} must be a valid ethereum address`),
   )
 }
-
-const CreateManagerSchema = v.object({
-  rpcUrl: v.pipe(
-    v.string('rpcUrl must be a string'),
-    v.trim(),
-    v.regex(/^https?:\/\/|wss?:\/\//, 'rpcUrl must be a valid url, including http/https/ws/wss'),
-  ),
-  privateKey: v.pipe(
-    v.string('privateKey must a string'),
-    v.trim(),
-    v.transform(cleanHexPrefix),
-    v.regex(/^[0-9a-f]{64}$/i, 'privateKey must be a valid ethereum private key'),
-  ),
-  proxyAddress: EthAddressSchema('proxyAddress'),
-}, 'createManagerParams must be an object')
 
 const TransactionOptionsSchema = v.optional(
   v.object({
@@ -51,6 +36,36 @@ const TransactionOptionsSchema = v.optional(
   {},
 )
 
+const AgentSDKPropsSchema = v.pipe(
+  v.object({
+    rpcUrl: v.pipe(
+      v.string('rpcUrl must be a string'),
+      v.trim(),
+      v.regex(/^https?:\/\/|wss?:\/\//, 'rpcUrl must be a valid url, including http/https/ws/wss'),
+    ),
+    privateKey: v.pipe(
+      v.string('privateKey must a string'),
+      v.trim(),
+      v.transform(cleanHexPrefix),
+      v.regex(/^[0-9a-f]{64}$/i, 'privateKey must be a valid ethereum private key'),
+    ),
+    proxyAddress: ethAddressSchema('proxyAddress'),
+    converterAddress: v.optional(ethAddressSchema('converterAddress')),
+    autoHashData: v.optional(
+      v.boolean('autoHashData must be a boolean'),
+      false,
+    ),
+  }, 'agentSDKProps must be an object'),
+  v.forward(
+    v.partialCheck(
+      [['converterAddress'], ['autoHashData']],
+      ({ converterAddress, autoHashData }) => !(autoHashData && !converterAddress),
+      'converterAddress must be provided if autoHashData is enabled',
+    ),
+    ['converterAddress'],
+  ),
+)
+
 const CreateAndRegisterAgentSchema = v.object({
   agentSettings: v.object({
     signers: v.pipe(
@@ -63,7 +78,7 @@ const CreateAndRegisterAgentSchema = v.object({
       v.number('threshold must be a number'),
       v.integer('threshold must be an integer'),
     ),
-    converterAddress: EthAddressSchema('converterAddress'),
+    converterAddress: ethAddressSchema('converterAddress'),
     agentHeader: v.object({
       messageId: v.optional(
         v.pipe(
@@ -116,41 +131,15 @@ const CreateAndRegisterAgentSchema = v.object({
     }, 'agentHeader must be an object'),
   }, 'agentSettings must be an object'),
   transactionOptions: TransactionOptionsSchema,
-})
-
-const CreateAgentSchema = v.object({
-  rpcUrl: v.pipe(
-    v.string('rpcUrl must be a string'),
-    v.trim(),
-    v.regex(/^https?:\/\/|wss?:\/\//, 'rpcUrl must be a valid url, including http/https/ws/wss'),
-  ),
-  privateKey: v.pipe(
-    v.string('privateKey must a string'),
-    v.trim(),
-    v.regex(/^[0-9a-f]{64}$/i, 'privateKey must be a valid ethereum private key'),
-  ),
-  proxyAddress: EthAddressSchema('proxyAddress'),
-  converterAddress: EthAddressSchema('converterAddress'),
-  agent: v.optional(EthAddressSchema('agent')),
-  digest: v.optional(
-    v.pipe(
-      v.string('digest must be a string'),
-      v.trim(),
-      v.transform(prependHexPrefix),
-      v.length(66, 'digest must be 66 characters long, including 0x prefix'),
-    ),
-  ),
-})
+}, 'createAndRegisterAgentParams must be an object')
 
 const VerifySchema = v.object({
-  agent: v.optional(EthAddressSchema('agent')),
-  digest: v.optional(
-    v.pipe(
-      v.string('digest must be a string'),
-      v.trim(),
-      v.transform(prependHexPrefix),
-      v.length(66, 'digest must be 66 characters long, including 0x prefix'),
-    ),
+  agent: ethAddressSchema('agent'),
+  digest: v.pipe(
+    v.string('digest must be a string'),
+    v.trim(),
+    v.transform(prependHexPrefix),
+    v.length(66, 'digest must be 66 characters long, including 0x prefix'),
   ),
   transactionOptions: TransactionOptionsSchema,
   payload: v.object({
@@ -168,11 +157,29 @@ const VerifySchema = v.object({
         v.length(66, 'dataHash must be 66 characters long, including 0x prefix'),
       ),
     ),
-    signers: v.pipe(
-      v.array(v.string('signers element must be a string'), 'signers must be an array of strings'),
-      v.transform(arr => arr.map(cleanHexPrefix)),
-      v.check(arr => arr.every(s => /^[0-9a-f]{64}$/i.test(s)), 'signers elements must be valid ethereum private keys'),
-      v.minLength(1, 'signers must have at least 1 element'),
+    signatures: v.pipe(
+      v.array(
+        v.object({
+          r: v.pipe(
+            v.string('r must be a string'),
+            v.trim(),
+            v.transform(prependHexPrefix),
+            v.length(66, 'r must be 66 characters long, including 0x prefix'),
+          ),
+          s: v.pipe(
+            v.string('s must be a string'),
+            v.trim(),
+            v.transform(prependHexPrefix),
+            v.length(66, 's must be 66 characters long, including 0x prefix'),
+          ),
+          v: v.pipe(
+            v.picklist([0, 1, 27, 28], 'v must be 0, 1, 27 or 28'),
+            v.transform(standardizeV),
+          ),
+        }, 'signatures elements must be objects that include r, s, and v.'),
+        'signatures must be an array of objects',
+      ),
+      v.minLength(1, 'signatures must have at least 1 element'),
     ),
     metadata: v.optional(
       v.object({
@@ -211,8 +218,7 @@ const VerifySchema = v.object({
 }, 'verifyParams must be an object')
 
 export {
-  CreateAgentSchema,
+  AgentSDKPropsSchema,
   CreateAndRegisterAgentSchema,
-  CreateManagerSchema,
   VerifySchema,
 }

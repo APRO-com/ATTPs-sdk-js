@@ -1,26 +1,27 @@
 import type { AgentSettings, MessagePayload, TransactionOptions } from '@/schema/types'
-import { createAgent, createManager } from '@/index'
+import AgentSDK from '@/index'
 import { uuidv4 } from '@/utils'
 import { hexlify, keccak256, parseUnits, toUtf8Bytes } from 'ethers'
 import { describe, expect, it } from 'vitest'
 import testData from '../data.json'
+import { randomSigners } from './helper'
 
-describe('create and register agent', () => {
+describe('create and register agent', async () => {
   const { rpcUrl, agentProxy, privateKey, apro, custom } = testData
+  const signers = await randomSigners(5)
 
   it('with fully customized agent settings and transaction options', async () => {
     // Given
-    const { converter, signerAddresses } = apro
-    const manager = createManager({ proxyAddress: agentProxy, rpcUrl, privateKey })
-    const nonce = await manager.getNextNonce()
+    const { converter } = apro
+    const agent = new AgentSDK({ rpcUrl, privateKey, proxyAddress: agentProxy, converterAddress: converter })
+    const nonce = await agent.getNextNonce()
 
     // When
     const agentSettings: AgentSettings = {
-      signers: signerAddresses,
+      signers,
       threshold: 3,
       converterAddress: converter,
       agentHeader: {
-        version: '1.0',
         messageId: uuidv4(),
         sourceAgentId: uuidv4(),
         sourceAgentName: 'APRO Data Pull',
@@ -36,7 +37,7 @@ describe('create and register agent', () => {
       gasPrice: parseUnits('1', 'gwei'),
       gasLimit: BigInt(2000000),
     }
-    const tx = await manager.createAndRegisterAgent({ agentSettings, transactionOptions })
+    const tx = await agent.createAndRegisterAgent({ agentSettings, transactionOptions })
     console.log('txHash', tx.hash)
 
     // Then
@@ -46,12 +47,12 @@ describe('create and register agent', () => {
 
   it('with partial customized agent settings and transaction options', async () => {
     // Given
-    const { converter, signerAddresses } = custom
-    const manager = createManager({ proxyAddress: agentProxy, rpcUrl, privateKey })
+    const { converter } = custom
+    const agent = new AgentSDK({ rpcUrl, privateKey, proxyAddress: agentProxy, converterAddress: converter })
 
     // When
     const agentSettings: AgentSettings = {
-      signers: signerAddresses,
+      signers,
       threshold: 3,
       converterAddress: converter,
       agentHeader: {
@@ -65,7 +66,7 @@ describe('create and register agent', () => {
     const transactionOptions: TransactionOptions = {
       gasPrice: parseUnits('1', 'gwei'),
     }
-    const tx = await manager.createAndRegisterAgent({ agentSettings, transactionOptions })
+    const tx = await agent.createAndRegisterAgent({ agentSettings, transactionOptions })
     console.log('txHash', tx.hash)
 
     // Then
@@ -75,12 +76,12 @@ describe('create and register agent', () => {
 
   it('with partial customized agent settings and default transaction options', async () => {
     // Given
-    const { converter, signerAddresses } = apro
-    const manager = createManager({ proxyAddress: agentProxy, rpcUrl, privateKey })
+    const { converter } = apro
+    const agent = new AgentSDK({ proxyAddress: agentProxy, rpcUrl, privateKey, converterAddress: converter })
 
     // When
     const agentSettings: AgentSettings = {
-      signers: signerAddresses,
+      signers,
       threshold: 3,
       converterAddress: converter,
       agentHeader: {
@@ -91,7 +92,7 @@ describe('create and register agent', () => {
         ttl: 3600,
       },
     }
-    const tx = await manager.createAndRegisterAgent({ agentSettings })
+    const tx = await agent.createAndRegisterAgent({ agentSettings })
     console.log('txHash', tx.hash)
 
     // Then
@@ -105,20 +106,35 @@ describe('verify a report', () => {
 
   it('should verify an apro data pull report', async () => {
     // Given
-    const { converter, agentAddress, configDigest, signerPrivateKeys } = apro
-    const agent = createAgent({
+    const { converter, agentAddress, configDigest } = apro
+    const agent = new AgentSDK({
       proxyAddress: agentProxy,
       converterAddress: converter,
       rpcUrl,
       privateKey,
-      agent: agentAddress,
-      digest: configDigest,
+      autoHashData: true,
     })
 
-    const fullReport = '0x0006e706cf7ab41fa599311eb3de68be869198ce62aef1cd079475ca50e5b3f60000000000000000000000000000000000000000000000000000000003e05306000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000002a0000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001200003665949c883f9e0f6f002eac32e00bd59dfe6c34e92a91c37d6a8322d648900000000000000000000000000000000000000000000000000000000677cdb6800000000000000000000000000000000000000000000000000000000677cdb6800000000000000000000000000000000000000000000000000000320e6d7a71c00000000000000000000000000000000000000000000000004db73254763000000000000000000000000000000000000000000000000000000000000677e2ce800000000000000000000000000000000000000000000158bcf23916e0934c00000000000000000000000000000000000000000000000158bceb5ca0b25a5800000000000000000000000000000000000000000000000158bcff0ea393d3940000000000000000000000000000000000000000000000000000000000000000003c5096aec1e09c4f31e18977cbf116a6019890f6ccfee73d33d4cc692c9a4158eba28489661a3dd78bfbe2491e40bd801279a5cff08a53ce0f3191573cb66ab8ddbf7a60a80db2a9d17bc79c8a96a0199c729311158e3eb9dc1f7f4e0e00cdcdb0000000000000000000000000000000000000000000000000000000000000003586101390e85a09adfe72d20a588685701dee06bfc734d632af202e2c0e1be792eae6b4b53fc6b851a9651c07540631d4a60eee517a9ea1539627e19574b59c916a8a89bc66211d992d98512089c828716bf95962c3355139b7f31e64aa4bd14'
+    const fullReport = '0x0006e706cf7ab41fa599311eb3de68be869198ce62aef1cd079475ca50e5b3f60000000000000000000000000000000000000000000000000000000003fe4907000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000002a0010001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001200003665949c883f9e0f6f002eac32e00bd59dfe6c34e92a91c37d6a8322d648900000000000000000000000000000000000000000000000000000000677f779100000000000000000000000000000000000000000000000000000000677f779100000000000000000000000000000000000000000000000000000362005570e800000000000000000000000000000000000000000000000004db732547630000000000000000000000000000000000000000000000000000000000006780c9110000000000000000000000000000000000000000000013ed2bdfd551102380000000000000000000000000000000000000000000000013ed2b72c3d44d88c0000000000000000000000000000000000000000000000013ed3369aad6b22180000000000000000000000000000000000000000000000000000000000000000003097dda4dd6f7113a710c9b5b56ce458c0791469bb5de01a71a5413ff43eb8b2a2e2d7e199e08106cf2a6308a7af2e339b11bf87bfa4a5593f6f4282396360a9d7a4eff209893782d721486177d6b667658d386f790eb64346c25d12251316b4300000000000000000000000000000000000000000000000000000000000000036249bbc444f934de2707d20502de7439be8c077d34dd196cfe19bb6e5e251a3a27a333dafc80196d062406cae35c7ff5225f7fbc97c48a178fa1190e87d096db146827e5d0f00b890772178971db330e8357282b196db806b8a5042de7de12d2'
     const payload: MessagePayload = {
       data: fullReport,
-      signers: signerPrivateKeys.slice(0, 3),
+      signatures: [
+        {
+          r: '097dda4dd6f7113a710c9b5b56ce458c0791469bb5de01a71a5413ff43eb8b2a',
+          s: '6249bbc444f934de2707d20502de7439be8c077d34dd196cfe19bb6e5e251a3a',
+          v: 1, // or 28
+        },
+        {
+          r: '2e2d7e199e08106cf2a6308a7af2e339b11bf87bfa4a5593f6f4282396360a9d',
+          s: '27a333dafc80196d062406cae35c7ff5225f7fbc97c48a178fa1190e87d096db',
+          v: 0, // or 27
+        },
+        {
+          r: '7a4eff209893782d721486177d6b667658d386f790eb64346c25d12251316b43',
+          s: '146827e5d0f00b890772178971db330e8357282b196db806b8a5042de7de12d2',
+          v: 1, // or 28
+        },
+      ],
       metadata: {
         contentType: 'application/abi',
         encoding: 'null',
@@ -127,7 +143,7 @@ describe('verify a report', () => {
     }
 
     // When
-    const tx = await agent.verify({ payload })
+    const tx = await agent.verify({ payload, agent: agentAddress, digest: configDigest })
     console.log('txHash', tx.hash)
 
     // Then
@@ -137,23 +153,36 @@ describe('verify a report', () => {
 
   it('should verify a custom report', async () => {
     // Given
-    const { converter, agentAddress, configDigest, signerPrivateKeys } = custom
-    const agent = createAgent({
+    const { agentAddress, configDigest } = custom
+    const agent = new AgentSDK({
       proxyAddress: agentProxy,
-      converterAddress: converter,
       rpcUrl,
       privateKey,
-      agent: agentAddress,
-      digest: configDigest,
     })
     const nonce = await agent.getNextNonce()
 
-    const data = hexlify(toUtf8Bytes('hello world'))
+    const data = hexlify(toUtf8Bytes('Hello World!'))
     const dataHash = keccak256(data)
     const payload: MessagePayload = {
       data,
       dataHash,
-      signers: signerPrivateKeys.slice(0, 3),
+      signatures: [
+        {
+          r: '944077ec69cbba1a1ca86556c51786ab7cb0b7769c09fd135613817e00f01707',
+          s: '6c53ba26ec3db0ff48d00084414a2ae89af470ca4b65805794b2cb11409b616c',
+          v: 28, // or 1
+        },
+        {
+          r: '079570c191da21106916d1b2badec3866693f1c33fca8e593d13c006b8f2f8b3',
+          s: '2f1747b281585d62894605e354355f8c4b53c805162939fa1b71bde2dd5747da',
+          v: 27, // or 0
+        },
+        {
+          r: 'de592b3b7b50fd0eaebb943109e67165f3858034599debccaf99a11f42f31704',
+          s: '713bd639340928b4df4d50d39b39e7c61859b3894c6549e8b075210e2604d9b4',
+          v: 28, // or 1
+        },
+      ],
       metadata: {
         contentType: 'application/abi',
         encoding: 'null',
@@ -167,7 +196,7 @@ describe('verify a report', () => {
     }
 
     // When
-    const tx = await agent.verify({ payload, transactionOptions })
+    const tx = await agent.verify({ payload, agent: agentAddress, digest: configDigest, transactionOptions })
     console.log('txHash', tx.hash)
 
     // Then

@@ -4,15 +4,11 @@
   "privateKey": "",
   "apro": {
     "converter": "",
-    "signerAddresses": [],
-    "signerPrivateKeys": [],
     "agentAddress": "",
     "configDigest": ""
   },
   "custom": {
     "converter": "",
-    "signerAddresses": [],
-    "signerPrivateKeys": [],
     "agentAddress": "",
     "configDigest": ""
   }

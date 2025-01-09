@@ -4,46 +4,16 @@ interface Metadata {
   compression: string
 }
 
-interface CreateManagerParams {
-  rpcUrl: string
-  privateKey: string
-  proxyAddress: string
-}
-
-interface CreateAgentParams extends CreateManagerParams {
-  converterAddress: string
-  agent?: string
-  digest?: string
-}
-
 interface AgentSettings {
   signers: string[]
   threshold: number
   converterAddress: string
   agentHeader: {
-    version?: string
     messageId?: string
     sourceAgentId?: string
     sourceAgentName: string
     targetAgentId: string
     timestamp?: number
-    messageType: number
-    priority: number
-    ttl: number
-  }
-}
-
-interface FullAgentSettings {
-  signers: string[]
-  threshold: number
-  converterAddress: string
-  agentHeader: {
-    version?: string
-    messageId: string
-    sourceAgentId: string
-    sourceAgentName: string
-    targetAgentId: string
-    timestamp: number
     messageType: number
     priority: number
     ttl: number
@@ -64,24 +34,37 @@ interface CreateAndRegisterAgentParams {
 interface MessagePayload {
   data: string
   dataHash?: string
-  signers: string[]
+  signatures: Signature[]
   metadata: Metadata
 }
 
 interface VerifyParams {
+  agent: string
+  digest: string
   payload: MessagePayload
-  agent?: string
-  digest?: string
   transactionOptions?: TransactionOptions
 }
 
+interface AgentSDKProps {
+  rpcUrl: string
+  privateKey: string
+  proxyAddress: string
+  converterAddress?: string
+  autoHashData?: boolean
+}
+
+interface Signature {
+  r: string
+  s: string
+  v: 1 | 0 | 27 | 28
+}
+
 export {
+  AgentSDKProps,
   AgentSettings,
-  CreateAgentParams,
   CreateAndRegisterAgentParams,
-  CreateManagerParams,
-  FullAgentSettings,
   MessagePayload,
+  Signature,
   TransactionOptions,
   VerifyParams,
 }
