@@ -1,3 +1,5 @@
+import { Interface } from 'ethers'
+
 const converterAbi = [
   'function converter(bytes calldata data) external pure returns (bytes memory)',
 ]
@@ -144,8 +146,84 @@ const agentManagerAbi = [
   'function isValidSourceAgentId(string memory sourceAgentId) external view returns (bool)',
 ]
 
+const AgentRegisteredAbi = {
+  type: 'event',
+  name: 'AgentRegistered',
+  inputs: [
+    {
+      name: 'agent',
+      type: 'address',
+      indexed: true,
+    },
+    {
+      name: 'agentSettings',
+      type: 'tuple',
+      components: [
+        {
+          name: 'signers',
+          type: 'address[]',
+        },
+        {
+          name: 'threshold',
+          type: 'uint8',
+        },
+        {
+          name: 'converterAddress',
+          type: 'address',
+        },
+        {
+          name: 'agentHeader',
+          type: 'tuple',
+          components: [
+            {
+              name: 'version',
+              type: 'string',
+            },
+            {
+              name: 'messageId',
+              type: 'string',
+            },
+            {
+              name: 'sourceAgentId',
+              type: 'string',
+            },
+            {
+              name: 'sourceAgentName',
+              type: 'string',
+            },
+            {
+              name: 'targetAgentId',
+              type: 'string',
+            },
+            {
+              name: 'timestamp',
+              type: 'uint256',
+            },
+            {
+              name: 'messageType',
+              type: 'uint8',
+            },
+            {
+              name: 'priority',
+              type: 'uint8',
+            },
+            {
+              name: 'ttl',
+              type: 'uint256',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
+
+const iface = new Interface([AgentRegisteredAbi])
+const AgentRegisteredTopic = iface.getEvent('AgentRegistered')!.topicHash
+
 export {
   agentManagerAbi,
   agentProxyAbi,
+  AgentRegisteredTopic,
   converterAbi,
 }

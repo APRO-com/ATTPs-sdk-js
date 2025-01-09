@@ -1,5 +1,5 @@
 import type { AgentSettings, MessagePayload, TransactionOptions } from '@/index'
-import AgentSDK from '@/index'
+import AgentSDK, { parseNewAgentAddress } from '@/index'
 import { uuidv4 } from '@/utils'
 import { hexlify, keccak256, parseUnits, toUtf8Bytes } from 'ethers'
 import { describe, expect, it } from 'vitest'
@@ -13,7 +13,7 @@ describe('create and register agent', async () => {
   it('with fully customized agent settings and transaction options', async () => {
     // Given
     const { converter } = apro
-    const agent = new AgentSDK({ rpcUrl, privateKey, proxyAddress: agentProxy, converterAddress: converter })
+    const agent = new AgentSDK({ rpcUrl, privateKey, proxyAddress: agentProxy })
     const nonce = await agent.getNextNonce()
 
     // When
@@ -38,17 +38,22 @@ describe('create and register agent', async () => {
       gasLimit: BigInt(2000000),
     }
     const tx = await agent.createAndRegisterAgent({ agentSettings, transactionOptions })
-    console.log('txHash', tx.hash)
+    console.log('createAndRegisterAgent txHash', tx.hash)
 
     // Then
     const receipt = await tx.wait()
     expect(receipt?.status).toBe(1)
+
+    const agentAddress = parseNewAgentAddress(receipt)
+    expect(agentAddress).toBeTruthy()
+
+    console.log('agentAddress', agentAddress)
   })
 
   it('with partial customized agent settings and transaction options', async () => {
     // Given
     const { converter } = custom
-    const agent = new AgentSDK({ rpcUrl, privateKey, proxyAddress: agentProxy, converterAddress: converter })
+    const agent = new AgentSDK({ rpcUrl, privateKey, proxyAddress: agentProxy })
 
     // When
     const agentSettings: AgentSettings = {
@@ -67,17 +72,22 @@ describe('create and register agent', async () => {
       gasPrice: parseUnits('1', 'gwei'),
     }
     const tx = await agent.createAndRegisterAgent({ agentSettings, transactionOptions })
-    console.log('txHash', tx.hash)
+    console.log('createAndRegisterAgent txHash', tx.hash)
 
     // Then
     const receipt = await tx.wait()
     expect(receipt?.status).toBe(1)
+
+    const agentAddress = parseNewAgentAddress(receipt)
+    expect(agentAddress).toBeTruthy()
+
+    console.log('agentAddress', agentAddress)
   })
 
   it('with partial customized agent settings and default transaction options', async () => {
     // Given
     const { converter } = apro
-    const agent = new AgentSDK({ proxyAddress: agentProxy, rpcUrl, privateKey, converterAddress: converter })
+    const agent = new AgentSDK({ proxyAddress: agentProxy, rpcUrl, privateKey })
 
     // When
     const agentSettings: AgentSettings = {
@@ -93,11 +103,16 @@ describe('create and register agent', async () => {
       },
     }
     const tx = await agent.createAndRegisterAgent({ agentSettings })
-    console.log('txHash', tx.hash)
+    console.log('createAndRegisterAgent txHash', tx.hash)
 
     // Then
     const receipt = await tx.wait()
     expect(receipt?.status).toBe(1)
+
+    const agentAddress = parseNewAgentAddress(receipt)
+    expect(agentAddress).toBeTruthy()
+
+    console.log('agentAddress', agentAddress)
   })
 })
 
@@ -109,10 +124,10 @@ describe('verify a report', () => {
     const { converter, agentAddress, configDigest } = apro
     const agent = new AgentSDK({
       proxyAddress: agentProxy,
-      converterAddress: converter,
       rpcUrl,
       privateKey,
       autoHashData: true,
+      converterAddress: converter, // converter must be provided if autoHashData is true
     })
 
     const fullReport = '0x0006e706cf7ab41fa599311eb3de68be869198ce62aef1cd079475ca50e5b3f60000000000000000000000000000000000000000000000000000000003fe4907000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000022000000000000000000000000000000000000000000000000000000000000002a0010001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001200003665949c883f9e0f6f002eac32e00bd59dfe6c34e92a91c37d6a8322d648900000000000000000000000000000000000000000000000000000000677f779100000000000000000000000000000000000000000000000000000000677f779100000000000000000000000000000000000000000000000000000362005570e800000000000000000000000000000000000000000000000004db732547630000000000000000000000000000000000000000000000000000000000006780c9110000000000000000000000000000000000000000000013ed2bdfd551102380000000000000000000000000000000000000000000000013ed2b72c3d44d88c0000000000000000000000000000000000000000000000013ed3369aad6b22180000000000000000000000000000000000000000000000000000000000000000003097dda4dd6f7113a710c9b5b56ce458c0791469bb5de01a71a5413ff43eb8b2a2e2d7e199e08106cf2a6308a7af2e339b11bf87bfa4a5593f6f4282396360a9d7a4eff209893782d721486177d6b667658d386f790eb64346c25d12251316b4300000000000000000000000000000000000000000000000000000000000000036249bbc444f934de2707d20502de7439be8c077d34dd196cfe19bb6e5e251a3a27a333dafc80196d062406cae35c7ff5225f7fbc97c48a178fa1190e87d096db146827e5d0f00b890772178971db330e8357282b196db806b8a5042de7de12d2'
@@ -144,7 +159,7 @@ describe('verify a report', () => {
 
     // When
     const tx = await agent.verify({ payload, agent: agentAddress, digest: configDigest })
-    console.log('txHash', tx.hash)
+    console.log('verify txHash', tx.hash)
 
     // Then
     const receipt = await tx.wait()
@@ -197,7 +212,7 @@ describe('verify a report', () => {
 
     // When
     const tx = await agent.verify({ payload, agent: agentAddress, digest: configDigest, transactionOptions })
-    console.log('txHash', tx.hash)
+    console.log('verify txHash', tx.hash)
 
     // Then
     const receipt = await tx.wait()

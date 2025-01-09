@@ -1,5 +1,7 @@
+import type { ContractTransactionReceipt } from 'ethers'
 import { randomUUID } from 'node:crypto'
-import { AbiCoder } from 'ethers'
+import { AbiCoder, stripZerosLeft } from 'ethers'
+import { AgentRegisteredTopic } from './schema/abi'
 import { AiAgentError } from './schema/errors'
 
 function containsHexPrefix(value: string): boolean {
@@ -49,11 +51,24 @@ function standardizeV(v: 1 | 0 | 27 | 28) {
   return v
 }
 
+function parseNewAgentAddress(receipt: ContractTransactionReceipt | null) {
+  if (!receipt) {
+    throw new AiAgentError('PARAMETER_ERROR', 'Invalid transaction receipt')
+  }
+
+  return receipt.logs
+    .filter(log => log.topics[0] === AgentRegisteredTopic)
+    .map(log => log.topics[1])
+    .map(address => stripZerosLeft(address))
+    .at(0)
+}
+
 export {
   cleanHexPrefix,
   containsHexPrefix,
   encodeSignatures,
   isValidUUIDV4,
+  parseNewAgentAddress,
   prependHexPrefix,
   standardizeV,
   uuidv4,
