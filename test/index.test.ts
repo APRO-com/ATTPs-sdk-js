@@ -198,11 +198,6 @@ describe('verify a report', () => {
           v: 28, // or 1
         },
       ],
-      metadata: {
-        contentType: 'application/abi',
-        encoding: 'null',
-        compression: 'null',
-      },
     }
     const transactionOptions: TransactionOptions = {
       nonce,

@@ -187,31 +187,28 @@ const VerifySchema = v.object({
           v.pipe(
             v.string('contentType must be a string'),
             v.trim(),
-            v.minLength(1, 'contentType must be at least 1 character long'),
           ),
-          'application/abi',
+          '',
         ),
         encoding: v.optional(
           v.pipe(
             v.string('encoding must be a string'),
             v.trim(),
-            v.minLength(1, 'encoding must be at least 1 character long'),
           ),
-          'null',
+          '',
         ),
         compression: v.optional(
           v.pipe(
             v.string('compression must be a string'),
             v.trim(),
-            v.minLength(1, 'compression must be at least 1 character long'),
           ),
-          'null',
+          '',
         ),
       }, 'metadata must be an object'),
       {
-        contentType: 'application/abi',
-        encoding: 'null',
-        compression: 'null',
+        contentType: '',
+        encoding: '',
+        compression: '',
       },
     ),
   }, 'payload must be an object'),

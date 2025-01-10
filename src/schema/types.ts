@@ -35,7 +35,7 @@ interface MessagePayload {
   data: string
   dataHash?: string
   signatures: Signature[]
-  metadata: Metadata
+  metadata?: Metadata
 }
 
 interface VerifyParams {
