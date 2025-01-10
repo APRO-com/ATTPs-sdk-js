@@ -96,7 +96,7 @@ class AgentSDK {
   }
 
   public getNextNonce = async () => {
-    return await this.provider.getTransactionCount(this.wallet.address)
+    return this.wallet.getNonce()
   }
 
   private converter = async (data: string) => {
