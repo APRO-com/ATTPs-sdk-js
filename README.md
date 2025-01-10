@@ -101,9 +101,9 @@ const payload: MessagePayload = {
     // ...
   ],
   metadata: {
-    contentType: 'application/abi',
-    encoding: 'null',
-    compression: 'null',
+    contentType: '',
+    encoding: '',
+    compression: '',
   },
 }
 
@@ -126,9 +126,9 @@ const payload: MessagePayload = {
     // ...
   ],
   metadata: {
-    contentType: 'application/abi',
-    encoding: 'null',
-    compression: 'null',
+    contentType: '',
+    encoding: '',
+    compression: '',
   },
 }
 
