@@ -1,5 +1,5 @@
 import type { ContractTransactionResponse, Provider } from 'ethers'
-import type { AgentSDKProps, CreateAndRegisterAgentParams, VerifyParams } from './schema/types'
+import type { AgentSDKProps, CreateAndRegisterAgentParams, VerifyParams } from './schema/validator'
 import { Contract, getDefaultProvider, keccak256, Wallet } from 'ethers'
 import * as v from 'valibot'
 import { agentManagerAbi, agentProxyAbi, converterAbi } from './schema/abi'
@@ -80,6 +80,9 @@ class AgentSDK {
     const { payload, agent, digest, transactionOptions } = p.output
     if (this.autoHashData) {
       payload.dataHash = keccak256(await this.converter(payload.data))
+    }
+    if (!payload.dataHash) {
+      throw new AiAgentError('PARAMETER_ERROR', 'dataHash is required')
     }
 
     const signatureProof = encodeSignatures(payload.signatures)
