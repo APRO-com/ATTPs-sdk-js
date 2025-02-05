@@ -41,18 +41,17 @@
   },
   "dependencies": {
     "ethers": "^6.13.5",
-    "valibot": "^1.0.0-beta.14"
+    "valibot": "^1.0.0-beta.15"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^3.16.0",
-    "@types/node": "^22.10.7",
-    "bumpp": "^9.10.2",
-    "cross-env": "^7.0.3",
-    "eslint": "^9.18.0",
-    "taze": "^18.3.0",
+    "@antfu/eslint-config": "^4.1.1",
+    "@types/node": "^22.13.1",
+    "bumpp": "^10.0.1",
+    "eslint": "^9.19.0",
+    "taze": "^18.4.0",
     "typescript": "^5.7.3",
     "unbuild": "^3.3.1",
     "vite": "^6.0.11",
-    "vitest": "^3.0.3"
+    "vitest": "^3.0.5"
   }
 }
