@@ -1,4 +1,4 @@
-import { isAddress } from 'ethers'
+import { isAddress, isBytesLike } from 'ethers'
 import * as v from 'valibot'
 import { cleanHexPrefix, isValidUUIDV4, prependHexPrefix, standardizeV, uuidv4 } from '../utils'
 
@@ -210,6 +210,7 @@ const MessagePayloadSchema = v.object({
     v.trim(),
     v.transform(prependHexPrefix),
     v.minLength(1, 'data must be at least 1 character long'),
+    v.check(isBytesLike, 'data must be a valid bytes-like string'),
   ),
   dataHash: v.nullish(
     v.pipe(
@@ -217,6 +218,7 @@ const MessagePayloadSchema = v.object({
       v.trim(),
       v.transform(prependHexPrefix),
       v.length(66, 'dataHash must be 66 characters long, including 0x prefix'),
+      v.check(isBytesLike, 'dataHash must be a valid bytes-like string'),
     ),
   ),
   signatures: SignatureSchema,
