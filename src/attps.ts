@@ -1,11 +1,12 @@
 import type { ContractTransactionResponse, Provider } from 'ethers'
-import type { ATTPsSDKProps, CreateAndRegisterAgentParams, VerifyParams } from './schema/validator'
+import type { ATTPsSDKProps, CreateAndRegisterAgentParams, VerifyParams, VrfRequest } from './schema/validator'
 import { Contract, getDefaultProvider, keccak256, Wallet } from 'ethers'
 import * as v from 'valibot'
 import { agentManagerAbi, agentProxyAbi, converterAbi } from './schema/abi'
 import { ATTPsError } from './schema/errors'
-import { ATTPsSDKPropsSchema, CreateAndRegisterAgentSchema, VerifySchema } from './schema/validator'
+import { ATTPsSDKPropsSchema, CreateAndRegisterAgentSchema, VerifySchema, VrfRequestSchema } from './schema/validator'
 import { encodeSignatures } from './utils'
+import { getVrfProviders, getVrfRequest, markVrfRequest } from './vrf'
 
 interface FullAgentSettings {
   signers: string[]
@@ -30,7 +31,8 @@ class ATTPsSDK {
   private provider: Provider
   private proxyContract: Contract
   private converterContract?: Contract
-  private ManagerContract?: Contract
+  private managerContract?: Contract
+  private vrfBackendUrl?: string = 'http://127.0.0.1:8713'
 
   constructor(props: ATTPsSDKProps) {
     const p = v.safeParse(ATTPsSDKPropsSchema, props)
@@ -38,7 +40,7 @@ class ATTPsSDK {
       throw new ATTPsError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
     }
 
-    const { rpcUrl, privateKey, proxyAddress, converterAddress, autoHashData } = p.output
+    const { rpcUrl, privateKey, proxyAddress, converterAddress, autoHashData, vrfBackendUrl } = p.output
     this.autoHashData = autoHashData
 
     const provider = getDefaultProvider(rpcUrl)
@@ -50,6 +52,9 @@ class ATTPsSDK {
 
     if (converterAddress) {
       this.converterContract = new Contract(converterAddress, converterAbi, wallet)
+    }
+    if (vrfBackendUrl) {
+      this.vrfBackendUrl = vrfBackendUrl
     }
   }
 
@@ -98,6 +103,35 @@ class ATTPsSDK {
     }, transactionOptions)
   }
 
+  public markVrfRequest = async (vrfRequest: VrfRequest) => {
+    if (!this.vrfBackendUrl) {
+      throw new ATTPsError('PARAMETER_ERROR', 'VRF backend url is required')
+    }
+
+    const p = v.safeParse(VrfRequestSchema, vrfRequest)
+    if (!p.success) {
+      throw new ATTPsError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
+    }
+
+    return markVrfRequest(this.vrfBackendUrl, p.output)
+  }
+
+  public getVrfProviders = async () => {
+    if (!this.vrfBackendUrl) {
+      throw new ATTPsError('PARAMETER_ERROR', 'VRF backend url is required')
+    }
+
+    return getVrfProviders(this.vrfBackendUrl)
+  }
+
+  public getVrfRequest = async (requestId: string) => {
+    if (!this.vrfBackendUrl) {
+      throw new ATTPsError('PARAMETER_ERROR', 'VRF backend url is required')
+    }
+
+    return getVrfRequest(this.vrfBackendUrl, requestId)
+  }
+
   public getNextNonce = async () => {
     return this.wallet.getNonce()
   }
@@ -107,13 +141,13 @@ class ATTPsSDK {
   }
 
   private getManagerContract = async () => {
-    if (this.ManagerContract) {
-      return this.ManagerContract
+    if (this.managerContract) {
+      return this.managerContract
     }
 
     const managerAddress = await this.proxyContract.agentManager()
-    this.ManagerContract = new Contract(managerAddress, agentManagerAbi, this.provider)
-    return this.ManagerContract
+    this.managerContract = new Contract(managerAddress, agentManagerAbi, this.provider)
+    return this.managerContract
   }
 }
 

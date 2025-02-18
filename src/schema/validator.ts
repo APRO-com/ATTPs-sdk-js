@@ -55,6 +55,13 @@ const ATTPsSDKPropsSchema = v.pipe(
       v.boolean('autoHashData must be a boolean'),
       false,
     ),
+    vrfBackendUrl: v.optional(
+      v.pipe(
+        v.string('vrfBackendUrl must be a string'),
+        v.trim(),
+        v.regex(/^https?:\/\//, 'vrfBackendUrl must be a valid url, including http/https'),
+      ),
+    ),
   }, 'agentSDKProps must be an object'),
   v.forward(
     v.partialCheck(
@@ -237,6 +244,40 @@ const VerifySchema = v.object({
   payload: MessagePayloadSchema,
 }, 'verifyParams must be an object')
 
+const VrfRequestSchema = v.object({
+  version: v.literal(1, 'version must be 1'),
+  targetAgentId: v.pipe(
+    v.string('targetAgentId must be a string'),
+    v.trim(),
+    v.check(v => isValidUUIDV4(v), 'targetAgentId must be a valid v4 uuid'),
+  ),
+  clientSeed: v.pipe(
+    v.string('clientSeed must be a string'),
+    v.trim(),
+    v.minLength(1, 'clientSeed must be at least 1 character long'),
+  ),
+  keyHash: v.pipe(
+    v.string('keyHash must be a string'),
+    v.trim(),
+    v.length(64, 'keyHash must be 64 characters long'),
+  ),
+  requestTimestamp: v.nullable(
+    v.pipe(
+      v.number('requestTimestamp must be a number'),
+      v.integer('requestTimestamp must be an integer'),
+      v.transform(num => num.toString()),
+      v.regex(/^\d{10}$/, 'timestamp must be 10 digits long'),
+      v.transform(Number),
+    ),
+    () => Math.floor(Date.now() / 1000),
+  ),
+  callbackUri: v.pipe(
+    v.string('callbackUri must be a string'),
+    v.trim(),
+    v.regex(/^https?:\/\//, 'callbackUri must be a valid url, including http/https'),
+  ),
+}, 'vrfRequest must be an object')
+
 type MessagePayload = v.InferInput<typeof MessagePayloadSchema>
 type TransactionOptions = v.InferInput<typeof TransactionOptionsSchema>
 type VerifyParams = v.InferInput<typeof VerifySchema>
@@ -246,10 +287,14 @@ type Signature = v.InferInput<typeof SignatureSchema>
 type ATTPsSDKProps = v.InferInput<typeof ATTPsSDKPropsSchema>
 type MetaData = v.InferInput<typeof MetaDataSchema>
 
+// vrf schema
+type VrfRequest = v.InferInput<typeof VrfRequestSchema>
+
 export {
   ATTPsSDKPropsSchema,
   CreateAndRegisterAgentSchema,
   VerifySchema,
+  VrfRequestSchema,
 }
 
 export type {
@@ -261,4 +306,5 @@ export type {
   Signature,
   TransactionOptions,
   VerifyParams,
+  VrfRequest,
 }
