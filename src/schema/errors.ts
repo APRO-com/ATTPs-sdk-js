@@ -1,7 +1,7 @@
 type ErrorName =
   | 'PARAMETER_ERROR'
 
-class AiAgentError extends Error {
+class ATTPsError extends Error {
   constructor(
     public name: ErrorName,
     public message: string,
@@ -13,5 +13,5 @@ class AiAgentError extends Error {
 }
 
 export {
-  AiAgentError,
+  ATTPsError,
 }

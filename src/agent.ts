@@ -1,10 +1,10 @@
 import type { ContractTransactionResponse, Provider } from 'ethers'
-import type { AgentSDKProps, CreateAndRegisterAgentParams, VerifyParams } from './schema/validator'
+import type { ATTPsSDKProps, CreateAndRegisterAgentParams, VerifyParams } from './schema/validator'
 import { Contract, getDefaultProvider, keccak256, Wallet } from 'ethers'
 import * as v from 'valibot'
 import { agentManagerAbi, agentProxyAbi, converterAbi } from './schema/abi'
-import { AiAgentError } from './schema/errors'
-import { AgentSDKPropsSchema, CreateAndRegisterAgentSchema, VerifySchema } from './schema/validator'
+import { ATTPsError } from './schema/errors'
+import { ATTPsSDKPropsSchema, CreateAndRegisterAgentSchema, VerifySchema } from './schema/validator'
 import { encodeSignatures } from './utils'
 
 interface FullAgentSettings {
@@ -24,7 +24,7 @@ interface FullAgentSettings {
   }
 }
 
-class AgentSDK {
+class ATTPsSDK {
   private autoHashData: boolean
   private wallet: Wallet
   private provider: Provider
@@ -32,10 +32,10 @@ class AgentSDK {
   private converterContract?: Contract
   private ManagerContract?: Contract
 
-  constructor(props: AgentSDKProps) {
-    const p = v.safeParse(AgentSDKPropsSchema, props)
+  constructor(props: ATTPsSDKProps) {
+    const p = v.safeParse(ATTPsSDKPropsSchema, props)
     if (!p.success) {
-      throw new AiAgentError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
+      throw new ATTPsError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
     }
 
     const { rpcUrl, privateKey, proxyAddress, converterAddress, autoHashData } = p.output
@@ -56,7 +56,7 @@ class AgentSDK {
   public createAndRegisterAgent = async (params: CreateAndRegisterAgentParams): Promise<ContractTransactionResponse> => {
     const p = v.safeParse(CreateAndRegisterAgentSchema, params)
     if (!p.success) {
-      throw new AiAgentError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
+      throw new ATTPsError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
     }
 
     const { agentSettings, transactionOptions } = p.output
@@ -65,7 +65,7 @@ class AgentSDK {
     agentHeader.version = await managerContract.agentVersion()
 
     if (!await managerContract.isValidSourceAgentId(agentHeader.sourceAgentId)) {
-      throw new AiAgentError('PARAMETER_ERROR', 'Invalid source agent id, please provide a new one')
+      throw new ATTPsError('PARAMETER_ERROR', 'Invalid source agent id, please provide a new one')
     }
 
     return await this.proxyContract.createAndRegisterAgent(agentSettings, transactionOptions)
@@ -74,7 +74,7 @@ class AgentSDK {
   public verify = async (params: VerifyParams): Promise<ContractTransactionResponse> => {
     const p = v.safeParse(VerifySchema, params)
     if (!p.success) {
-      throw new AiAgentError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
+      throw new ATTPsError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
     }
 
     const { payload, agent, digest, transactionOptions } = p.output
@@ -82,7 +82,7 @@ class AgentSDK {
       payload.dataHash = keccak256(await this.converter(payload.data))
     }
     if (!payload.dataHash) {
-      throw new AiAgentError('PARAMETER_ERROR', 'dataHash is required')
+      throw new ATTPsError('PARAMETER_ERROR', 'dataHash is required')
     }
 
     const signatureProof = encodeSignatures(payload.signatures)
@@ -118,5 +118,5 @@ class AgentSDK {
 }
 
 export {
-  AgentSDK,
+  ATTPsSDK,
 }

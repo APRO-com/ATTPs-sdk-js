@@ -2,7 +2,7 @@ import type { ContractTransactionReceipt } from 'ethers'
 import { randomUUID } from 'node:crypto'
 import { AbiCoder, stripZerosLeft } from 'ethers'
 import { AgentRegisteredTopic } from './schema/abi'
-import { AiAgentError } from './schema/errors'
+import { ATTPsError } from './schema/errors'
 
 function containsHexPrefix(value: string): boolean {
   return value?.startsWith('0x')
@@ -37,7 +37,7 @@ function encodeSignatures(signatures: { r: string, s: string, v: number }[]): st
     )
   }
   catch (e: any) {
-    throw new AiAgentError(
+    throw new ATTPsError(
       'PARAMETER_ERROR',
       `Failed to encode signatures, make sure to provide valid signatures, error: ${e.message}`,
     )
@@ -53,7 +53,7 @@ function standardizeV(v: 1 | 0 | 27 | 28) {
 
 function parseNewAgentAddress(receipt: ContractTransactionReceipt | null) {
   if (!receipt) {
-    throw new AiAgentError('PARAMETER_ERROR', 'Invalid transaction receipt')
+    throw new ATTPsError('PARAMETER_ERROR', 'Invalid transaction receipt')
   }
 
   return receipt.logs

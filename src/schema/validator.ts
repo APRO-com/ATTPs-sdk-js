@@ -36,7 +36,7 @@ const TransactionOptionsSchema = v.optional(
   {},
 )
 
-const AgentSDKPropsSchema = v.pipe(
+const ATTPsSDKPropsSchema = v.pipe(
   v.object({
     rpcUrl: v.pipe(
       v.string('rpcUrl must be a string'),
@@ -243,18 +243,18 @@ type VerifyParams = v.InferInput<typeof VerifySchema>
 type CreateAndRegisterAgentParams = v.InferInput<typeof CreateAndRegisterAgentSchema>
 type AgentSettings = v.InferInput<typeof AgentSettingsSchema>
 type Signature = v.InferInput<typeof SignatureSchema>
-type AgentSDKProps = v.InferInput<typeof AgentSDKPropsSchema>
+type ATTPsSDKProps = v.InferInput<typeof ATTPsSDKPropsSchema>
 type MetaData = v.InferInput<typeof MetaDataSchema>
 
 export {
-  AgentSDKPropsSchema,
+  ATTPsSDKPropsSchema,
   CreateAndRegisterAgentSchema,
   VerifySchema,
 }
 
 export type {
-  AgentSDKProps,
   AgentSettings,
+  ATTPsSDKProps,
   CreateAndRegisterAgentParams,
   MessagePayload,
   MetaData,

@@ -1,30 +1,30 @@
-# AI Agent SDK
+# ATTPs SDK
 
-The AI Agent SDK is a TypeScript library that provides a set of tools to create AI agents and verify data integrity.
+The ATTPs SDK is a TypeScript library that provides a set of tools to create AI agents and verify data integrity.
 
 ## Installation
 
-To install the AI Agent SDK, run the following command:
+To install the ATTPs SDK, run the following command:
 
 ```bash
-npm install ai-agent-sdk-js
+npm install attps-sdk-js
 ```
 
 ## Usage
 
-To use the AI Agent SDK, import the library and create an instance of the `Agent` class:
+To use the ATTPs SDK, import the library and create an instance of the `ATTPsSDK` class:
 
 ```typescript
-import { AgentSDK } from 'ai-agent-sdk-js'
+import { ATTPsSDK } from 'attps-sdk-js'
 
-const agent = new AgentSDK({
+const attps = new ATTPsSDK({
   rpcUrl: 'https://bsc-testnet-rpc.publicnode.com',
   privateKey: '',
   proxyAddress: '',
 })
 
 // if you want the SDK to hash the data automatically
-const autoHashAgent = new AgentSDK({
+const attpsWithAutoHash = new ATTPsSDK({
   rpcUrl: 'https://bsc-testnet-rpc.publicnode.com',
   privateKey: '',
   proxyAddress: '',
@@ -36,7 +36,7 @@ const autoHashAgent = new AgentSDK({
 To create a new agent, call the `createAndRegisterAgent` method:
 
 ```typescript
-import type { AgentSettings, TransactionOptions } from 'ai-agent-sdk-js'
+import type { AgentSettings, TransactionOptions } from 'attps-sdk-js'
 import { randomUUID } from 'node:crypto'
 import { parseUnits } from 'ethers'
 
@@ -48,7 +48,7 @@ const agentSettings: AgentSettings = {
   agentHeader: {
     messageId: randomUUID(),
     sourceAgentId: randomUUID(),
-    sourceAgentName: 'AI Agent SDK JS',
+    sourceAgentName: 'ATTPs SDK JS',
     targetAgentId: '',
     timestamp: Math.floor(Date.now() / 1000),
     messageType: 0,
@@ -58,23 +58,23 @@ const agentSettings: AgentSettings = {
 }
 
 // prepare the transaction options
-const nonce = await agent.getNextNonce()
+const nonce = await attps.getNextNonce()
 const transactionOptions: TransactionOptions = {
   nonce,
   gasPrice: parseUnits('1', 'gwei'),
   gasLimit: BigInt(2000000),
 }
 
-const tx = await agent.createAndRegisterAgent({ agentSettings, transactionOptions })
+const tx = await attps.createAndRegisterAgent({ agentSettings, transactionOptions })
 
 // or you can leave the transaction options empty, the SDK will use the auto-generated values
-// const tx = await agent.createAndRegisterAgent({ agentSettings })
+// const tx = await attps.createAndRegisterAgent({ agentSettings })
 ```
 
 The SDK also provides the tool to extract the new agent address from the transaction receipt:
 
 ```typescript
-import { parseNewAgentAddress } from 'ai-agent-sdk-js'
+import { parseNewAgentAddress } from 'attps-sdk-js'
 
 const receipt = await tx.wait()
 const agentAddress = parseNewAgentAddress(receipt)
@@ -83,7 +83,7 @@ const agentAddress = parseNewAgentAddress(receipt)
 To verify the data integrity, call the `verify` method:
 
 ```typescript
-import type { MessagePayload } from 'ai-agent-sdk-js'
+import type { MessagePayload } from 'attps-sdk-js'
 import { hexlify, keccak256, toUtf8Bytes } from 'ethers'
 
 // prepare the payload
@@ -107,13 +107,13 @@ const payload: MessagePayload = {
   },
 }
 
-const tx = await agent.verify({ payload, agent: '', digest: '' })
+const tx = await attps.verify({ payload, agent: '', digest: '' })
 ```
 
 If the data is obtained from the APRO DATA pull service, you can use the auto-hash feature:
 
 ```typescript
-import type { MessagePayload } from 'ai-agent-sdk-js'
+import type { MessagePayload } from 'attps-sdk-js'
 
 const payload: MessagePayload = {
   data: '0x...',
@@ -133,7 +133,7 @@ const payload: MessagePayload = {
 }
 
 // When
-const tx = await autoHashAgent.verify({ payload, agent: '', digest: '' })
+const tx = await attpsWithAutoHash.verify({ payload, agent: '', digest: '' })
 ```
 
 For more examples, see the [test](test/index.test.ts) cases.

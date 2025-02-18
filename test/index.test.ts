@@ -1,5 +1,5 @@
 import type { AgentSettings, MessagePayload, TransactionOptions } from '@/index'
-import { AgentSDK, parseNewAgentAddress } from '@/index'
+import { ATTPsSDK, parseNewAgentAddress } from '@/index'
 import { uuidv4 } from '@/utils'
 import { hexlify, keccak256, parseUnits, toUtf8Bytes } from 'ethers'
 import { describe, expect, it } from 'vitest'
@@ -13,8 +13,8 @@ describe('create and register agent', async () => {
   it('with fully customized agent settings and transaction options', async () => {
     // Given
     const { converter } = apro
-    const agent = new AgentSDK({ rpcUrl, privateKey, proxyAddress: agentProxy })
-    const nonce = await agent.getNextNonce()
+    const attps = new ATTPsSDK({ rpcUrl, privateKey, proxyAddress: agentProxy })
+    const nonce = await attps.getNextNonce()
 
     // When
     const agentSettings: AgentSettings = {
@@ -24,7 +24,7 @@ describe('create and register agent', async () => {
       agentHeader: {
         messageId: uuidv4(),
         sourceAgentId: uuidv4(),
-        sourceAgentName: 'AI Agent SDK JS',
+        sourceAgentName: 'ATTPs SDK JS',
         targetAgentId: uuidv4(),
         timestamp: Math.floor(Date.now() / 1000),
         messageType: 0,
@@ -37,7 +37,7 @@ describe('create and register agent', async () => {
       gasPrice: parseUnits('1', 'gwei'),
       gasLimit: BigInt(2000000),
     }
-    const tx = await agent.createAndRegisterAgent({ agentSettings, transactionOptions })
+    const tx = await attps.createAndRegisterAgent({ agentSettings, transactionOptions })
     console.log('createAndRegisterAgent txHash', tx.hash)
 
     // Then
@@ -53,7 +53,7 @@ describe('create and register agent', async () => {
   it('with partial customized agent settings and transaction options', async () => {
     // Given
     const { converter } = custom
-    const agent = new AgentSDK({ rpcUrl, privateKey, proxyAddress: agentProxy })
+    const attps = new ATTPsSDK({ rpcUrl, privateKey, proxyAddress: agentProxy })
 
     // When
     const agentSettings: AgentSettings = {
@@ -61,7 +61,7 @@ describe('create and register agent', async () => {
       threshold: 3,
       converterAddress: converter,
       agentHeader: {
-        sourceAgentName: 'AI Agent SDK JS',
+        sourceAgentName: 'ATTPs SDK JS',
         targetAgentId: uuidv4(),
         messageType: 0,
         priority: 1,
@@ -71,7 +71,7 @@ describe('create and register agent', async () => {
     const transactionOptions: TransactionOptions = {
       gasPrice: parseUnits('1', 'gwei'),
     }
-    const tx = await agent.createAndRegisterAgent({ agentSettings, transactionOptions })
+    const tx = await attps.createAndRegisterAgent({ agentSettings, transactionOptions })
     console.log('createAndRegisterAgent txHash', tx.hash)
 
     // Then
@@ -87,7 +87,7 @@ describe('create and register agent', async () => {
   it('with partial customized agent settings and default transaction options', async () => {
     // Given
     const { converter } = apro
-    const agent = new AgentSDK({ proxyAddress: agentProxy, rpcUrl, privateKey })
+    const attps = new ATTPsSDK({ proxyAddress: agentProxy, rpcUrl, privateKey })
 
     // When
     const agentSettings: AgentSettings = {
@@ -95,14 +95,14 @@ describe('create and register agent', async () => {
       threshold: 3,
       converterAddress: converter,
       agentHeader: {
-        sourceAgentName: 'AI Agent SDK JS',
+        sourceAgentName: 'ATTPs SDK JS',
         targetAgentId: uuidv4(),
         messageType: 0,
         priority: 1,
         ttl: 3600,
       },
     }
-    const tx = await agent.createAndRegisterAgent({ agentSettings })
+    const tx = await attps.createAndRegisterAgent({ agentSettings })
     console.log('createAndRegisterAgent txHash', tx.hash)
 
     // Then
@@ -122,7 +122,7 @@ describe('verify a report', () => {
   it('should verify an apro data pull report', async () => {
     // Given
     const { converter, agentAddress, configDigest } = apro
-    const agent = new AgentSDK({
+    const attps = new ATTPsSDK({
       proxyAddress: agentProxy,
       rpcUrl,
       privateKey,
@@ -158,7 +158,7 @@ describe('verify a report', () => {
     }
 
     // When
-    const tx = await agent.verify({ payload, agent: agentAddress, digest: configDigest })
+    const tx = await attps.verify({ payload, agent: agentAddress, digest: configDigest })
     console.log('verify txHash', tx.hash)
 
     // Then
@@ -169,12 +169,12 @@ describe('verify a report', () => {
   it('should verify a custom report', async () => {
     // Given
     const { agentAddress, configDigest } = custom
-    const agent = new AgentSDK({
+    const attps = new ATTPsSDK({
       proxyAddress: agentProxy,
       rpcUrl,
       privateKey,
     })
-    const nonce = await agent.getNextNonce()
+    const nonce = await attps.getNextNonce()
 
     const data = hexlify(toUtf8Bytes('Hello World!'))
     const dataHash = keccak256(data)
@@ -206,7 +206,7 @@ describe('verify a report', () => {
     }
 
     // When
-    const tx = await agent.verify({ payload, agent: agentAddress, digest: configDigest, transactionOptions })
+    const tx = await attps.verify({ payload, agent: agentAddress, digest: configDigest, transactionOptions })
     console.log('verify txHash', tx.hash)
 
     // Then
