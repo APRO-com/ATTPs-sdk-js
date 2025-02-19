@@ -8,56 +8,20 @@ const agentProxyAbi = [
   {
     inputs: [{
       components: [
-        {
-          name: 'signers',
-          type: 'address[]',
-        },
-        {
-          name: 'threshold',
-          type: 'uint8',
-        },
-        {
-          name: 'converterAddress',
-          type: 'address',
-        },
+        { name: 'signers', type: 'address[]' },
+        { name: 'threshold', type: 'uint8' },
+        { name: 'converterAddress', type: 'address' },
         {
           components: [
-            {
-              name: 'version',
-              type: 'string',
-            },
-            {
-              name: 'messageId',
-              type: 'string',
-            },
-            {
-              name: 'sourceAgentId',
-              type: 'string',
-            },
-            {
-              name: 'sourceAgentName',
-              type: 'string',
-            },
-            {
-              name: 'targetAgentId',
-              type: 'string',
-            },
-            {
-              name: 'timestamp',
-              type: 'uint256',
-            },
-            {
-              name: 'messageType',
-              type: 'uint8',
-            },
-            {
-              name: 'priority',
-              type: 'uint8',
-            },
-            {
-              name: 'ttl',
-              type: 'uint256',
-            },
+            { name: 'version', type: 'string' },
+            { name: 'messageId', type: 'string' },
+            { name: 'sourceAgentId', type: 'string' },
+            { name: 'sourceAgentName', type: 'string' },
+            { name: 'targetAgentId', type: 'string' },
+            { name: 'timestamp', type: 'uint256' },
+            { name: 'messageType', type: 'uint8' },
+            { name: 'priority', type: 'uint8' },
+            { name: 'ttl', type: 'uint256' },
           ],
           name: 'agentHeader',
           type: 'tuple',
@@ -73,56 +37,26 @@ const agentProxyAbi = [
   },
   {
     inputs: [
-      {
-        name: 'agent',
-        type: 'address',
-      },
-      {
-        name: 'settingsDigest',
-        type: 'bytes32',
-      },
+      { name: 'agent', type: 'address' },
+      { name: 'settingsDigest', type: 'bytes32' },
       {
         components: [
-          {
-            name: 'data',
-            type: 'bytes',
-          },
-          {
-            name: 'dataHash',
-            type: 'bytes32',
-          },
+          { name: 'data', type: 'bytes' },
+          { name: 'dataHash', type: 'bytes32' },
           {
             components: [
-              {
-                name: 'zkProof',
-                type: 'bytes',
-              },
-              {
-                name: 'merkleProof',
-                type: 'bytes',
-              },
-              {
-                name: 'signatureProof',
-                type: 'bytes',
-              },
+              { name: 'zkProof', type: 'bytes' },
+              { name: 'merkleProof', type: 'bytes' },
+              { name: 'signatureProof', type: 'bytes' },
             ],
             name: 'proofs',
             type: 'tuple',
           },
           {
             components: [
-              {
-                name: 'contentType',
-                type: 'string',
-              },
-              {
-                name: 'encoding',
-                type: 'string',
-              },
-              {
-                name: 'compression',
-                type: 'string',
-              },
+              { name: 'contentType', type: 'string' },
+              { name: 'encoding', type: 'string' },
+              { name: 'compression', type: 'string' },
             ],
             name: 'metadata',
             type: 'tuple',
@@ -150,67 +84,27 @@ const AgentRegisteredAbi = {
   type: 'event',
   name: 'AgentRegistered',
   inputs: [
-    {
-      name: 'agent',
-      type: 'address',
-      indexed: true,
-    },
+    { name: 'agent', type: 'address', indexed: true },
     {
       name: 'agentSettings',
       type: 'tuple',
       components: [
-        {
-          name: 'signers',
-          type: 'address[]',
-        },
-        {
-          name: 'threshold',
-          type: 'uint8',
-        },
-        {
-          name: 'converterAddress',
-          type: 'address',
-        },
+        { name: 'signers', type: 'address[]' },
+        { name: 'threshold', type: 'uint8' },
+        { name: 'converterAddress', type: 'address' },
         {
           name: 'agentHeader',
           type: 'tuple',
           components: [
-            {
-              name: 'version',
-              type: 'string',
-            },
-            {
-              name: 'messageId',
-              type: 'string',
-            },
-            {
-              name: 'sourceAgentId',
-              type: 'string',
-            },
-            {
-              name: 'sourceAgentName',
-              type: 'string',
-            },
-            {
-              name: 'targetAgentId',
-              type: 'string',
-            },
-            {
-              name: 'timestamp',
-              type: 'uint256',
-            },
-            {
-              name: 'messageType',
-              type: 'uint8',
-            },
-            {
-              name: 'priority',
-              type: 'uint8',
-            },
-            {
-              name: 'ttl',
-              type: 'uint256',
-            },
+            { name: 'version', type: 'string' },
+            { name: 'messageId', type: 'string' },
+            { name: 'sourceAgentId', type: 'string' },
+            { name: 'sourceAgentName', type: 'string' },
+            { name: 'targetAgentId', type: 'string' },
+            { name: 'timestamp', type: 'uint256' },
+            { name: 'messageType', type: 'uint8' },
+            { name: 'priority', type: 'uint8' },
+            { name: 'ttl', type: 'uint256' },
           ],
         },
       ],
