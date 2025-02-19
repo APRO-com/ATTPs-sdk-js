@@ -1,6 +1,7 @@
 type ErrorName =
   | 'PARAMETER_ERROR'
   | 'VRF_REQUEST_ERROR'
+  | 'VRF_PROOF_ERROR'
 
 class ATTPsError extends Error {
   constructor(

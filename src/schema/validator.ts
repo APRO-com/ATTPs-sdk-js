@@ -278,6 +278,26 @@ const VrfRequestSchema = v.object({
   ),
 }, 'vrfRequest must be an object')
 
+function hexString(name: string) {
+  return v.pipe(
+    v.string(`${name} must be a string`),
+    v.trim(),
+    v.transform(cleanHexPrefix),
+    v.length(64, `${name} must be 64 characters long, excluding 0x prefix`),
+  )
+}
+
+const VrfProofSchema = v.object({
+  publicX: hexString('publicX'),
+  publicY: hexString('publicY'),
+  gammaX: hexString('gammaX'),
+  gammaY: hexString('gammaY'),
+  c: hexString('c'),
+  s: hexString('s'),
+  seed: hexString('seed'),
+  output: hexString('output'),
+}, 'vrfProof must be an object')
+
 type MessagePayload = v.InferInput<typeof MessagePayloadSchema>
 type TransactionOptions = v.InferInput<typeof TransactionOptionsSchema>
 type VerifyParams = v.InferInput<typeof VerifySchema>
@@ -289,11 +309,13 @@ type MetaData = v.InferInput<typeof MetaDataSchema>
 
 // vrf schema
 type VrfRequest = v.InferInput<typeof VrfRequestSchema>
+type VrfProof = v.InferInput<typeof VrfProofSchema>
 
 export {
   ATTPsSDKPropsSchema,
   CreateAndRegisterAgentSchema,
   VerifySchema,
+  VrfProofSchema,
   VrfRequestSchema,
 }
 
@@ -306,5 +328,6 @@ export type {
   Signature,
   TransactionOptions,
   VerifyParams,
+  VrfProof,
   VrfRequest,
 }

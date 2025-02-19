@@ -9,6 +9,7 @@ export default antfu(
       'antfu/no-top-level-await': 'off',
       'no-console': 'off',
       'ts/explicit-function-return-type': 'off',
+      'new-cap': 'off',
     },
   },
 )

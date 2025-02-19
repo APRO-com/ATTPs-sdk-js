@@ -1,12 +1,12 @@
 import type { ContractTransactionResponse, Provider } from 'ethers'
-import type { ATTPsSDKProps, CreateAndRegisterAgentParams, VerifyParams, VrfRequest } from './schema/validator'
+import type { ATTPsSDKProps, CreateAndRegisterAgentParams, VerifyParams, VrfProof, VrfRequest } from './schema/validator'
 import { Contract, getDefaultProvider, keccak256, Wallet } from 'ethers'
 import * as v from 'valibot'
 import { agentManagerAbi, agentProxyAbi, converterAbi } from './schema/abi'
 import { ATTPsError } from './schema/errors'
-import { ATTPsSDKPropsSchema, CreateAndRegisterAgentSchema, VerifySchema, VrfRequestSchema } from './schema/validator'
+import { ATTPsSDKPropsSchema, CreateAndRegisterAgentSchema, VerifySchema, VrfProofSchema, VrfRequestSchema } from './schema/validator'
 import { encodeSignatures } from './utils'
-import { getVrfProviders, getVrfRequest, markVrfRequest } from './vrf'
+import { getVrfProviders, getVrfRequest, markVrfRequest, verifyProof } from './vrf'
 
 interface FullAgentSettings {
   signers: string[]
@@ -134,6 +134,15 @@ class ATTPsSDK {
 
   public getNextNonce = async () => {
     return this.wallet.getNonce()
+  }
+
+  public static verifyProof = async (proof: VrfProof) => {
+    const p = v.safeParse(VrfProofSchema, proof)
+    if (!p.success) {
+      throw new ATTPsError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
+    }
+
+    return verifyProof(p.output)
   }
 
   private converter = async (data: string) => {
