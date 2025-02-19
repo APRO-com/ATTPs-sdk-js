@@ -1,6 +1,6 @@
 # ATTPs SDK
 
-The ATTPs SDK is a TypeScript library that provides a set of tools to create AI agents and verify data integrity.
+The ATTPs SDK is a TypeScript library that provides a set of tools to create ATTPs and verify data integrity.
 
 ## Installation
 
