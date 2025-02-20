@@ -135,3 +135,8 @@ export {
   markVrfRequest,
   verifyProof,
 }
+
+export type {
+  Vrf,
+  VrfProvider,
+}
