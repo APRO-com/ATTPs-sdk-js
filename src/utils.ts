@@ -1,7 +1,7 @@
 import type { ContractTransactionReceipt } from 'ethers'
 import { randomUUID } from 'node:crypto'
 import { posix } from 'node:path'
-import { AbiCoder, concat, getBytes, keccak256, stripZerosLeft, toUtf8Bytes } from 'ethers'
+import { AbiCoder, stripZerosLeft } from 'ethers'
 import { AgentRegisteredTopic } from './schema/abi'
 import { ATTPsError } from './schema/errors'
 
@@ -64,31 +64,6 @@ function parseNewAgentAddress(receipt: ContractTransactionReceipt | null) {
     .at(0)
 }
 
-function toBytes8(num: number) {
-  const buffer = new ArrayBuffer(8)
-  new DataView(buffer).setBigUint64(0, BigInt(num), false) // false表示大端序
-  return new Uint8Array(buffer)
-}
-
-async function generateRequestId(vrfRequest: {
-  version: number
-  targetAgentId: string
-  clientSeed: string
-  requestTimestamp: number
-  callbackUri: string
-}) {
-  const parts = [
-    toBytes8(vrfRequest.version),
-    toUtf8Bytes(vrfRequest.targetAgentId),
-    getBytes(prependHexPrefix(vrfRequest.clientSeed)),
-    toBytes8(vrfRequest.requestTimestamp),
-    toUtf8Bytes(vrfRequest.callbackUri),
-  ]
-
-  const concatenated = concat(parts)
-  return keccak256(concatenated).slice(2)
-}
-
 function joinURL(baseURL: string, ...paths: string[]): string {
   const url = new URL(baseURL)
   url.pathname = posix.join(url.pathname, ...paths)
@@ -99,7 +74,6 @@ export {
   cleanHexPrefix,
   containsHexPrefix,
   encodeSignatures,
-  generateRequestId,
   isValidUUIDV4,
   joinURL,
   parseNewAgentAddress,

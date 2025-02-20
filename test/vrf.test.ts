@@ -1,9 +1,27 @@
 import { randomUUID } from 'node:crypto'
 import vrf from '@/vrf'
+import { generateRequestId } from '@/vrf-utils'
 import { describe, expect, it } from 'vitest'
 
 describe('vrf', () => {
   it('should generate a request id', async () => {
+    // Given
+    const params = {
+      version: 1,
+      targetAgentId: '2c7302fd-d3fd-44aa-be38-256b94ae1680',
+      clientSeed: '1234',
+      requestTimestamp: 1739800571,
+      callbackUri: 'http://127.0.0.1:8713/api/vrf/proof',
+    }
+
+    // When
+    const requestId = await generateRequestId(params)
+
+    // Then
+    expect(requestId).toBe('da61c945e38b05fb01c56d10bbbe84cefcc185934927975ede6f8d8048ca2214')
+  })
+
+  it('should mark vrf request', async () => {
     // Given
     // When
     const result = await vrf.markVrfRequest('http://127.0.0.1:8713', {

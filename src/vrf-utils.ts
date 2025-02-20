@@ -1,6 +1,7 @@
 import { Buffer } from 'node:buffer'
 import BN from 'bn.js'
-import { keccak256 } from 'ethers'
+import { concat, getBytes, keccak256, toUtf8Bytes } from 'ethers'
+import { prependHexPrefix } from './utils'
 import { curve, ec, eulerCriterionPower, fieldSize, fieldSizeRed, groupOrder, one, oneRed, scalarFromCurveHashPrefix, seven, sqrtPower, three, two, zero } from './vrf-const'
 
 const HASH_LENGTH = 32
@@ -163,9 +164,35 @@ function wellFormed(publicKey: any, gamma: any, C: BN, S: BN, output: BN) {
   return true
 }
 
+function toBytes8(num: number) {
+  const buffer = new ArrayBuffer(8)
+  new DataView(buffer).setBigUint64(0, BigInt(num), false)
+  return new Uint8Array(buffer)
+}
+
+async function generateRequestId(vrfRequest: {
+  version: number
+  targetAgentId: string
+  clientSeed: string
+  requestTimestamp: number
+  callbackUri: string
+}) {
+  const parts = [
+    toBytes8(vrfRequest.version),
+    toUtf8Bytes(vrfRequest.targetAgentId),
+    getBytes(prependHexPrefix(vrfRequest.clientSeed)),
+    toBytes8(vrfRequest.requestTimestamp),
+    toUtf8Bytes(vrfRequest.callbackUri),
+  ]
+
+  const concatenated = concat(parts)
+  return keccak256(concatenated).slice(2)
+}
+
 export {
   bytesToHash,
   checkCGammaNotEqualToSHash,
+  generateRequestId,
   getLast160BitOfPoint,
   hashToCurve,
   linearCombination,

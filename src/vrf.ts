@@ -3,9 +3,9 @@ import type { VrfRequestSchema } from './schema/validator'
 import { Buffer } from 'node:buffer'
 import BN from 'bn.js'
 import { ATTPsError } from './schema/errors'
-import { generateRequestId, joinURL } from './utils'
+import { joinURL } from './utils'
 import { curve, generator, vrfRandomOutputHashPrefix } from './vrf-const'
-import { checkCGammaNotEqualToSHash, getLast160BitOfPoint, hashToCurve, linearCombination, longMarshal, mustHash, scalarFromCurvePoints, wellFormed } from './vrf-utils'
+import { checkCGammaNotEqualToSHash, generateRequestId, getLast160BitOfPoint, hashToCurve, linearCombination, longMarshal, mustHash, scalarFromCurvePoints, wellFormed } from './vrf-utils'
 
 type VrfRequestInput = v.InferOutput<typeof VrfRequestSchema>
 
