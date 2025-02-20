@@ -1,12 +1,12 @@
 import { randomUUID } from 'node:crypto'
-import { getVrfProviders, getVrfRequest, markVrfRequest, verifyProof } from '@/vrf'
+import vrf from '@/vrf'
 import { describe, expect, it } from 'vitest'
 
 describe('vrf', () => {
   it('should generate a request id', async () => {
     // Given
     // When
-    const result = await markVrfRequest('http://127.0.0.1:8713', {
+    const result = await vrf.markVrfRequest('http://127.0.0.1:8713', {
       version: 1,
       targetAgentId: randomUUID(),
       clientSeed: '1234',
@@ -23,7 +23,7 @@ describe('vrf', () => {
   it('should get vrf provider', async () => {
     // Given
     // When
-    const response = await getVrfProviders('http://127.0.0.1:8713')
+    const response = await vrf.getVrfProviders('http://127.0.0.1:8713')
 
     // Then
     expect(response.length).toBeGreaterThan(0)
@@ -33,7 +33,7 @@ describe('vrf', () => {
   it('should query vrf request', async () => {
     // Given
     // When
-    const response = await getVrfRequest('http://127.0.0.1:8713', '1d9f42b83ec5a97a62af0c9eece91592847686117d5f3bf4d35a8b6796b51148')
+    const response = await vrf.getVrfRequest('http://127.0.0.1:8713', '1d9f42b83ec5a97a62af0c9eece91592847686117d5f3bf4d35a8b6796b51148')
 
     // Then
     expect(response.requestId).toBe('1d9f42b83ec5a97a62af0c9eece91592847686117d5f3bf4d35a8b6796b51148')
@@ -54,7 +54,7 @@ describe('vrf', () => {
     }
 
     // When
-    const verified = await verifyProof(proof)
+    const verified = await vrf.verifyProof(proof)
 
     // Then
     expect(verified).toBeTruthy()

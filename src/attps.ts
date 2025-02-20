@@ -6,7 +6,7 @@ import { agentManagerAbi, agentProxyAbi, converterAbi } from './schema/abi'
 import { ATTPsError } from './schema/errors'
 import { ATTPsSDKPropsSchema, CreateAndRegisterAgentSchema, VerifySchema, VrfProofSchema, VrfRequestSchema } from './schema/validator'
 import { encodeSignatures } from './utils'
-import { getVrfProviders, getVrfRequest, markVrfRequest, verifyProof } from './vrf'
+import vrf from './vrf'
 
 interface FullAgentSettings {
   signers: string[]
@@ -113,7 +113,7 @@ class ATTPsSDK {
       throw new ATTPsError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
     }
 
-    return markVrfRequest(this.vrfBackendUrl, p.output)
+    return vrf.markVrfRequest(this.vrfBackendUrl, p.output)
   }
 
   public getVrfProviders = async () => {
@@ -121,7 +121,7 @@ class ATTPsSDK {
       throw new ATTPsError('PARAMETER_ERROR', 'VRF backend url is required')
     }
 
-    return getVrfProviders(this.vrfBackendUrl)
+    return vrf.getVrfProviders(this.vrfBackendUrl)
   }
 
   public getVrfRequest = async (requestId: string) => {
@@ -129,7 +129,7 @@ class ATTPsSDK {
       throw new ATTPsError('PARAMETER_ERROR', 'VRF backend url is required')
     }
 
-    return getVrfRequest(this.vrfBackendUrl, requestId)
+    return vrf.getVrfRequest(this.vrfBackendUrl, requestId)
   }
 
   public getNextNonce = async () => {
@@ -142,7 +142,7 @@ class ATTPsSDK {
       throw new ATTPsError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
     }
 
-    return verifyProof(p.output)
+    return vrf.verifyProof(p.output)
   }
 
   private converter = async (data: string) => {

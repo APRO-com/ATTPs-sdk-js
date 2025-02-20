@@ -129,7 +129,7 @@ async function verifyProof(proof: Proof) {
   return true
 }
 
-export {
+export default {
   getVrfProviders,
   getVrfRequest,
   markVrfRequest,
