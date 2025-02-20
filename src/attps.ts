@@ -136,7 +136,7 @@ class ATTPsSDK {
     return this.wallet.getNonce()
   }
 
-  public static verifyProof = async (proof: VrfProof) => {
+  public verifyProof = async (proof: VrfProof) => {
     const p = v.safeParse(VrfProofSchema, proof)
     if (!p.success) {
       throw new ATTPsError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
