@@ -1,14 +1,15 @@
 import { Buffer } from 'node:buffer'
 import BN from 'bn.js'
 import { concat, getBytes, keccak256, toUtf8Bytes } from 'ethers'
+import { ATTPsError } from './schema/errors'
 import { prependHexPrefix } from './utils'
-import { curve, ec, eulerCriterionPower, fieldSize, fieldSizeRed, groupOrder, one, oneRed, scalarFromCurveHashPrefix, seven, sqrtPower, three, two, zero } from './vrf-const'
+import { curve, curveOrder, ec, eulerCriterionPower, fieldSize, fieldSizeRed, groupOrder, hashToCurveHashPrefix, one, oneRed, scalarFromCurveHashPrefix, seven, sqrtPower, three, two, zero } from './vrf-const'
 
 const HASH_LENGTH = 32
 
 function uint256ToBytes32(uint256: BN) {
   if (uint256.byteLength() > HASH_LENGTH) {
-    throw new Error('vrf.uint256ToBytes32: too big to marshal to uint256')
+    throw new ATTPsError('VRF_PROOF_ERROR', 'vrf.uint256ToBytes32: too big to marshal to uint256')
   }
   return leftPadBytes(uint256.toArray(), HASH_LENGTH)
 }
@@ -74,11 +75,10 @@ function isCurveXOrdinate(x: BN) {
 }
 
 function hashToCurve(point: any, seed: BN) {
-  if (!point || !seed || seed.byteLength() > 32 || seed.lt(zero)) {
-    throw new Error('bad input to vrf.HashToCurve')
+  if (!(seed.byteLength() <= 256 && seed.gte(zero))) {
+    throw new ATTPsError('VRF_PROOF_ERROR', 'bad input to vrf.HashToCurve')
   }
   const inputTo32Byte = uint256ToBytes32(seed)
-  const hashToCurveHashPrefix = bytesToHash(one.toArray())
 
   const merged = Buffer.concat([
     hashToCurveHashPrefix,
@@ -95,6 +95,10 @@ function hashToCurve(point: any, seed: BN) {
   const y = squareRoot(y_2)
 
   const result = curve.point(x, y)
+  if (!curve.validate(result)) {
+    throw new ATTPsError('VRF_PROOF_ERROR', 'point requested from invalid coordinates')
+  }
+
   if (y.mod(two).eq(one)) {
     return result.neg()
   }
@@ -115,8 +119,6 @@ function checkCGammaNotEqualToSHash(c: BN, gammaPoint: any, s: BN, hashPoint: an
 }
 
 function linearCombination(c: BN, p1: any, s: BN, p2: any) {
-  const curveOrder = new BN(ec.curve.n)
-
   const scalarMul1 = p1.mul(c.umod(curveOrder))
   const scalarMul2 = p2.mul(s.umod(curveOrder))
 

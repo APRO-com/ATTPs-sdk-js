@@ -18,10 +18,12 @@ const groupOrder = ec.curve.n
 const generator = ec.g
 const fieldSize = curve.p
 
+const curveOrder = new BN(ec.curve.n)
 const eulerCriterionPower = fieldSize.sub(one).div(two)
 const sqrtPower = fieldSize.add(one).div(four)
 const scalarFromCurveHashPrefix = bytesToHash(two.toArray())
 const vrfRandomOutputHashPrefix = bytesToHash(three.toArray())
+const hashToCurveHashPrefix = bytesToHash(one.toArray())
 
 // red
 const fieldSizeRed = BN.red(fieldSize)
@@ -29,12 +31,14 @@ const oneRed = one.toRed(fieldSizeRed)
 
 export {
   curve,
+  curveOrder,
   ec,
   eulerCriterionPower,
   fieldSize,
   fieldSizeRed,
   generator,
   groupOrder,
+  hashToCurveHashPrefix,
   one,
   oneRed,
   scalarFromCurveHashPrefix,
