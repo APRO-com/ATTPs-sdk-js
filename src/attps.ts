@@ -1,5 +1,5 @@
 import type { ContractTransactionResponse, Provider } from 'ethers'
-import type { ATTPsSDKProps, CreateAndRegisterAgentParams, VerifyParams, VrfProof, VrfRequest } from './schema/validator'
+import type { ActualATTPsSDKProps, ATTPsSDKProps, CreateAndRegisterAgentParams, VerifyParams, VrfProof, VrfRequest } from './schema/validator'
 import { Contract, getDefaultProvider, keccak256, Wallet } from 'ethers'
 import * as v from 'valibot'
 import { agentManagerAbi, agentProxyAbi, converterAbi } from './schema/abi'
@@ -27,12 +27,14 @@ interface FullAgentSettings {
 
 class ATTPsSDK {
   private autoHashData: boolean
-  private wallet: Wallet
-  private provider: Provider
-  private proxyContract: Contract
+  private wallet?: Wallet
+  private provider?: Provider
+  private proxyContract?: Contract
   private converterContract?: Contract
   private managerContract?: Contract
   private vrfBackendUrl?: string = 'http://127.0.0.1:8713'
+
+  private props: ActualATTPsSDKProps
 
   constructor(props: ATTPsSDKProps) {
     const p = v.safeParse(ATTPsSDKPropsSchema, props)
@@ -40,25 +42,46 @@ class ATTPsSDK {
       throw new ATTPsError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
     }
 
-    const { rpcUrl, privateKey, proxyAddress, converterAddress, autoHashData, vrfBackendUrl } = p.output
+    this.props = p.output
+    const { rpcUrl, privateKey, proxyAddress, converterAddress, autoHashData, vrfBackendUrl } = this.props
     this.autoHashData = autoHashData
 
-    const provider = getDefaultProvider(rpcUrl)
-    const wallet = new Wallet(privateKey, provider)
-
-    this.wallet = wallet
-    this.provider = provider
-    this.proxyContract = new Contract(proxyAddress, agentProxyAbi, wallet)
-
-    if (converterAddress) {
-      this.converterContract = new Contract(converterAddress, converterAbi, wallet)
-    }
     if (vrfBackendUrl) {
       this.vrfBackendUrl = vrfBackendUrl
+    }
+
+    if (rpcUrl && privateKey) {
+      const provider = getDefaultProvider(rpcUrl)
+      const wallet = new Wallet(privateKey, provider)
+      this.wallet = wallet
+      this.provider = provider
+
+      if (proxyAddress) {
+        this.proxyContract = new Contract(proxyAddress, agentProxyAbi, wallet)
+      }
+      if (converterAddress) {
+        this.converterContract = new Contract(converterAddress, converterAbi, wallet)
+      }
+    }
+  }
+
+  private getErrorIfPropMissing = () => {
+    if (!this.props.proxyAddress) {
+      return new ATTPsError('PARAMETER_ERROR', 'proxyAddress is required')
+    }
+    if (!this.props.rpcUrl) {
+      return new ATTPsError('PARAMETER_ERROR', 'rpcUrl is required')
+    }
+    if (!this.props.privateKey) {
+      return new ATTPsError('PARAMETER_ERROR', 'privateKey is required')
     }
   }
 
   public createAndRegisterAgent = async (params: CreateAndRegisterAgentParams): Promise<ContractTransactionResponse> => {
+    if (!this.proxyContract) {
+      throw this.getErrorIfPropMissing()
+    }
+
     const p = v.safeParse(CreateAndRegisterAgentSchema, params)
     if (!p.success) {
       throw new ATTPsError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
@@ -77,6 +100,10 @@ class ATTPsSDK {
   }
 
   public verify = async (params: VerifyParams): Promise<ContractTransactionResponse> => {
+    if (!this.proxyContract) {
+      throw this.getErrorIfPropMissing()
+    }
+
     const p = v.safeParse(VerifySchema, params)
     if (!p.success) {
       throw new ATTPsError('PARAMETER_ERROR', p.issues.map(i => i.message).join('; '))
@@ -133,6 +160,9 @@ class ATTPsSDK {
   }
 
   public getNextNonce = async () => {
+    if (!this.wallet) {
+      throw this.getErrorIfPropMissing()
+    }
     return this.wallet.getNonce()
   }
 
@@ -150,6 +180,9 @@ class ATTPsSDK {
   }
 
   private getManagerContract = async () => {
+    if (!this.proxyContract) {
+      throw this.getErrorIfPropMissing()
+    }
     if (this.managerContract) {
       return this.managerContract
     }

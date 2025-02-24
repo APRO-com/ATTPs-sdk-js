@@ -38,18 +38,24 @@ const TransactionOptionsSchema = v.optional(
 
 const ATTPsSDKPropsSchema = v.pipe(
   v.object({
-    rpcUrl: v.pipe(
-      v.string('rpcUrl must be a string'),
-      v.trim(),
-      v.regex(/^https?:\/\/|wss?:\/\//, 'rpcUrl must be a valid url, including http/https/ws/wss'),
+    rpcUrl: v.optional(
+      v.pipe(
+        v.string('rpcUrl must be a string'),
+        v.trim(),
+        v.regex(/^https?:\/\/|wss?:\/\//, 'rpcUrl must be a valid url, including http/https/ws/wss'),
+      ),
     ),
-    privateKey: v.pipe(
-      v.string('privateKey must a string'),
-      v.trim(),
-      v.transform(cleanHexPrefix),
-      v.regex(/^[0-9a-f]{64}$/i, 'privateKey must be a valid ethereum private key'),
+    privateKey: v.optional(
+      v.pipe(
+        v.string('privateKey must a string'),
+        v.trim(),
+        v.transform(cleanHexPrefix),
+        v.regex(/^[0-9a-f]{64}$/i, 'privateKey must be a valid ethereum private key'),
+      ),
     ),
-    proxyAddress: ethAddressSchema('proxyAddress'),
+    proxyAddress: v.optional(
+      ethAddressSchema('proxyAddress'),
+    ),
     converterAddress: v.optional(ethAddressSchema('converterAddress')),
     autoHashData: v.optional(
       v.boolean('autoHashData must be a boolean'),
@@ -305,6 +311,7 @@ type CreateAndRegisterAgentParams = v.InferInput<typeof CreateAndRegisterAgentSc
 type AgentSettings = v.InferInput<typeof AgentSettingsSchema>
 type Signature = v.InferInput<typeof SignatureSchema>
 type ATTPsSDKProps = v.InferInput<typeof ATTPsSDKPropsSchema>
+type ActualATTPsSDKProps = v.InferOutput<typeof ATTPsSDKPropsSchema>
 type MetaData = v.InferInput<typeof MetaDataSchema>
 
 // vrf schema
@@ -320,6 +327,7 @@ export {
 }
 
 export type {
+  ActualATTPsSDKProps,
   AgentSettings,
   ATTPsSDKProps,
   CreateAndRegisterAgentParams,
