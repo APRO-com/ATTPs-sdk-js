@@ -37,38 +37,41 @@ const TransactionOptionsSchema = v.optional(
 )
 
 const ATTPsSDKPropsSchema = v.pipe(
-  v.object({
-    rpcUrl: v.optional(
-      v.pipe(
-        v.string('rpcUrl must be a string'),
-        v.trim(),
-        v.regex(/^https?:\/\/|wss?:\/\//, 'rpcUrl must be a valid url, including http/https/ws/wss'),
+  v.optional(
+    v.object({
+      rpcUrl: v.optional(
+        v.pipe(
+          v.string('rpcUrl must be a string'),
+          v.trim(),
+          v.regex(/^https?:\/\/|wss?:\/\//, 'rpcUrl must be a valid url, including http/https/ws/wss'),
+        ),
       ),
-    ),
-    privateKey: v.optional(
-      v.pipe(
-        v.string('privateKey must a string'),
-        v.trim(),
-        v.transform(cleanHexPrefix),
-        v.regex(/^[0-9a-f]{64}$/i, 'privateKey must be a valid ethereum private key'),
+      privateKey: v.optional(
+        v.pipe(
+          v.string('privateKey must a string'),
+          v.trim(),
+          v.transform(cleanHexPrefix),
+          v.regex(/^[0-9a-f]{64}$/i, 'privateKey must be a valid ethereum private key'),
+        ),
       ),
-    ),
-    proxyAddress: v.optional(
-      ethAddressSchema('proxyAddress'),
-    ),
-    converterAddress: v.optional(ethAddressSchema('converterAddress')),
-    autoHashData: v.optional(
-      v.boolean('autoHashData must be a boolean'),
-      false,
-    ),
-    vrfBackendUrl: v.optional(
-      v.pipe(
-        v.string('vrfBackendUrl must be a string'),
-        v.trim(),
-        v.regex(/^https?:\/\//, 'vrfBackendUrl must be a valid url, including http/https'),
+      proxyAddress: v.optional(
+        ethAddressSchema('proxyAddress'),
       ),
-    ),
-  }, 'agentSDKProps must be an object'),
+      converterAddress: v.optional(ethAddressSchema('converterAddress')),
+      autoHashData: v.optional(
+        v.boolean('autoHashData must be a boolean'),
+        false,
+      ),
+      vrfBackendUrl: v.optional(
+        v.pipe(
+          v.string('vrfBackendUrl must be a string'),
+          v.trim(),
+          v.regex(/^https?:\/\//, 'vrfBackendUrl must be a valid url, including http/https'),
+        ),
+      ),
+    }, 'agentSDKProps must be an object'),
+    {},
+  ),
   v.forward(
     v.partialCheck(
       [['converterAddress'], ['autoHashData']],
@@ -251,7 +254,11 @@ const VerifySchema = v.object({
 }, 'verifyParams must be an object')
 
 const VrfRequestSchema = v.object({
-  version: v.literal(1, 'version must be 1'),
+  version: v.pipe(
+    v.number('version must be a number'),
+    v.integer('version must be an integer'),
+    v.value(1, 'version must be 1'),
+  ),
   targetAgentId: v.pipe(
     v.string('targetAgentId must be a string'),
     v.trim(),

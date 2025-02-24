@@ -1,10 +1,12 @@
 import type { AgentSettings, MessagePayload, TransactionOptions } from '@/index'
+import { randomUUID } from 'node:crypto'
 import { ATTPsSDK, parseNewAgentAddress } from '@/index'
 import { uuidv4 } from '@/utils'
 import { hexlify, keccak256, parseUnits, toUtf8Bytes } from 'ethers'
-import { describe, expect, it } from 'vitest'
+import { http, HttpResponse } from 'msw'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import testData from '../data.json'
-import { randomSigners } from './helper'
+import { randomSigners, server } from './helper'
 
 describe('create and register agent', async () => {
   const { rpcUrl, agentProxy, privateKey, apro, custom } = testData
@@ -212,5 +214,113 @@ describe('verify a report', () => {
     // Then
     const receipt = await tx.wait()
     expect(receipt?.status).toBe(1)
+  })
+})
+
+describe('vrf operations', () => {
+  const vrfBackendUrl = 'http://localhost:3000'
+
+  beforeAll(() => server.listen())
+  afterEach(() => server.resetHandlers())
+  afterAll(() => server.close())
+
+  it('should get vrf providers', async () => {
+    // Given
+    const attps = new ATTPsSDK({
+      vrfBackendUrl,
+    })
+
+    // When
+    const providers = await attps.getVrfProviders()
+
+    // Then
+    expect(providers).toHaveLength(1)
+    expect(providers[0]).toEqual({
+      address: '0x1234567890123456789012345678901234567890',
+      keyHash: 'abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789',
+    })
+  })
+
+  it('should mark a vrf request', async () => {
+    // Given
+    const attps = new ATTPsSDK({
+      vrfBackendUrl,
+    })
+
+    const requestParams = {
+      version: 1,
+      targetAgentId: randomUUID(),
+      clientSeed: '1234',
+      keyHash: 'abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789',
+      requestTimestamp: Math.floor(Date.now() / 1000),
+      callbackUri: 'https://example.com/callback',
+    }
+
+    // When
+    const requestId = await attps.markVrfRequest(requestParams)
+
+    // Then
+    expect(requestId).toBe('0x9876543210987654321098765432109876543210')
+  })
+
+  it('should get a vrf request', async () => {
+    // Given
+    const attps = new ATTPsSDK({
+      vrfBackendUrl,
+    })
+
+    const requestId = '0x9876543210987654321098765432109876543210'
+
+    // When
+    const response = await attps.getVrfRequest(requestId)
+
+    // Then
+    expect(response.requestId).toBe(requestId)
+    expect(response.proof).toBeDefined()
+    expect(response.proof.publicX).toBe('4f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa')
+    expect(response.proof.publicY).toBe('385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1')
+  })
+
+  it('should verify a vrf proof', async () => {
+    // Given
+    const attps = new ATTPsSDK({})
+
+    const proof = {
+      publicX: '4f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa',
+      publicY: '385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1',
+      gammaX: '514d3c0e04b958722dde4fd07edd4cb0ff8564dec00071f43a183571491dc854',
+      gammaY: 'de06c37d5bd2706cdd21b92af8c0c27d27209f9938fb7d6e8a2fd5e0f0851b61',
+      c: 'eade17723b6f478e422c59da28f9fec2b3ec5308cbad011a062240db4462c8bd',
+      s: 'a64613a6c2c2b8dba9cadcff79a3d6db7c973a03cdb41c8654946bc5af2fa2f0',
+      seed: '847bf2c5404da462a157fe569ba535bd6f24e6056c957c975ae5d9ef5e1bfa73',
+      output: 'ecdd27817867152f88d58f9480a21ab95b26f6bbf5ff816f86b781865b562f96',
+    }
+
+    // When
+    const verified = await attps.verifyProof(proof)
+
+    // Then
+    expect(verified).toBe(true)
+  })
+
+  it('should handle vrf request error', async () => {
+    // Given
+    const attps = new ATTPsSDK({
+      vrfBackendUrl,
+    })
+
+    server.use(
+      http.get('*/api/vrf/provider', () => {
+        return HttpResponse.json({
+          message: 'VRF_REQUEST_ERROR',
+          code: 1,
+          result: null,
+          responseEnum: 'ERROR',
+        }, { status: 400 })
+      }),
+    )
+
+    // When & Then
+    await expect(attps.getVrfProviders()).rejects.toThrow('VRF_REQUEST_ERROR')
   })
 })
