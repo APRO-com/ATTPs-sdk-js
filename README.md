@@ -12,6 +12,8 @@ npm install attps-sdk-js
 
 ## Usage
 
+### ATTPs Core
+
 To use the ATTPs SDK, import the library and create an instance of the `ATTPsSDK` class:
 
 ```typescript
@@ -134,6 +136,50 @@ const payload: MessagePayload = {
 
 // When
 const tx = await attpsWithAutoHash.verify({ payload, agent: '', digest: '' })
+```
+
+### VRF
+
+ATTPs SDK provides VRF (Verifiable Random Function) capabilities. To use VRF features, you need to specify the VRF backend URL when initializing the SDK:
+
+```typescript
+const attps = new ATTPsSDK({
+  vrfBackendUrl: 'https://...',
+})
+```
+
+VRF operations include getting providers, making requests, querying requests and verifying proofs:
+
+```typescript
+// Get VRF providers
+const providers = await attps.getVrfProviders()
+
+// Make a VRF request
+const requestId = await attps.markVrfRequest({
+  version: 1,
+  targetAgentId: '',
+  clientSeed: '',
+  keyHash: '',
+  requestTimestamp: Math.floor(Date.now() / 1000),
+  callbackUri: 'https://...',
+})
+
+// Query a VRF request status
+const response = await attps.getVrfRequest({
+  requestId: '',
+})
+
+// Verify a VRF proof
+const verified = await attps.verifyProof({
+  publicX: '',
+  publicY: '',
+  gammaX: '',
+  gammaY: '',
+  c: '',
+  s: '',
+  seed: '',
+  output: '',
+})
 ```
 
 For more examples, see the [test](test/index.test.ts) cases.
