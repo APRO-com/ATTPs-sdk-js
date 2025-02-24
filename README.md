@@ -1,5 +1,9 @@
 # ATTPs SDK
 
+[![License: Apache 2.0][license-image]][license-url]
+[![NPM version][npm-image]][npm-url]
+[![Downloads][downloads-image]][npm-url]
+
 The ATTPs SDK is a TypeScript library that provides a set of tools to create ATTPs and verify data integrity.
 
 ## Installation
@@ -201,3 +205,10 @@ For more examples, see the [test](test/index.test.ts) cases.
 This project is licensed under the [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0). The full license text can be found in the [LICENSE](LICENSE) file.
 
 Copyright (c) 2025 Apro.
+
+[npm-image]: https://img.shields.io/npm/v/attps-sdk-js.svg?style=flat-square
+[npm-url]: https://npmjs.org/package/attps-sdk-js
+[downloads-image]: https://img.shields.io/npm/dm/attps-sdk-js.svg?style=flat-square
+[downloads-url]: https://npmjs.org/package/attps-sdk-js
+[license-image]: https://img.shields.io/npm/l/attps-sdk-js.svg?style=flat-square
+[license-url]: https://npmjs.org/package/attps-sdk-js
