@@ -7,6 +7,17 @@
     "type": "git",
     "url": "https://github.com/APRO-com/ATTPs-sdk-js"
   },
+  "keywords": [
+    "ATTPs",
+    "SDK",
+    "blockchain",
+    "cryptocurrency",
+    "Web3",
+    "Ethereum",
+    "smart-contracts",
+    "JavaScript",
+    "TypeScript"
+  ],
   "sideEffects": false,
   "exports": {
     ".": {
