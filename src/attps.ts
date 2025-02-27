@@ -1,4 +1,5 @@
 import type { ContractTransactionResponse, Provider } from 'ethers'
+import type { Parser } from './parser'
 import type { ActualATTPsSDKProps, ATTPsSDKProps, CreateAndRegisterAgentParams, VerifyParams, VrfProof, VrfRequest } from './schema/validator'
 import { Contract, getDefaultProvider, keccak256, Wallet } from 'ethers'
 import * as v from 'valibot'
@@ -33,6 +34,7 @@ class ATTPsSDK {
   private converterContract?: Contract
   private managerContract?: Contract
   private vrfBackendUrl?: string = 'http://127.0.0.1:8713'
+  private reportParser: Parser<any>
 
   private props: ActualATTPsSDKProps
 
@@ -43,7 +45,7 @@ class ATTPsSDK {
     }
 
     this.props = p.output
-    const { rpcUrl, privateKey, proxyAddress, converterAddress, autoHashData, vrfBackendUrl } = this.props
+    const { rpcUrl, privateKey, proxyAddress, converterAddress, autoHashData, vrfBackendUrl, reportParser } = this.props
     this.autoHashData = autoHashData
 
     if (vrfBackendUrl) {
@@ -63,6 +65,8 @@ class ATTPsSDK {
         this.converterContract = new Contract(converterAddress, converterAbi, wallet)
       }
     }
+
+    this.reportParser = reportParser
   }
 
   private getErrorIfPropMissing = () => {
@@ -173,6 +177,10 @@ class ATTPsSDK {
     }
 
     return vrf.verifyProof(p.output)
+  }
+
+  public reportParse = (hexData: string) => {
+    return this.reportParser.reportParse(hexData)
   }
 
   private converter = async (data: string) => {
