@@ -1,9 +1,9 @@
-interface ReportParser<T> {
-  parse: (hexData: string) => T
+interface Parser<T> {
+  reportParse: (hexData: string) => T
 }
 
 export {
-  ReportParser,
+  Parser,
 }
 
 export * from './apro-report-parser'

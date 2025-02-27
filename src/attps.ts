@@ -1,5 +1,5 @@
 import type { ContractTransactionResponse, Provider } from 'ethers'
-import type { ReportParser } from './parser'
+import type { Parser } from './parser'
 import type { ActualATTPsSDKProps, ATTPsSDKProps, CreateAndRegisterAgentParams, VerifyParams, VrfProof, VrfRequest } from './schema/validator'
 import { Contract, getDefaultProvider, keccak256, Wallet } from 'ethers'
 import * as v from 'valibot'
@@ -34,7 +34,7 @@ class ATTPsSDK {
   private converterContract?: Contract
   private managerContract?: Contract
   private vrfBackendUrl?: string = 'http://127.0.0.1:8713'
-  private reportParser: ReportParser<any>
+  private reportParser: Parser<any>
 
   private props: ActualATTPsSDKProps
 
@@ -179,8 +179,8 @@ class ATTPsSDK {
     return vrf.verifyProof(p.output)
   }
 
-  public parseReport = (hexData: string) => {
-    return this.reportParser.parse(hexData)
+  public reportParse = (hexData: string) => {
+    return this.reportParser.reportParse(hexData)
   }
 
   private converter = async (data: string) => {

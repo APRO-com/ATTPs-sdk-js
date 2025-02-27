@@ -1,4 +1,4 @@
-import type { ReportParser } from '.'
+import type { Parser } from '.'
 import { AbiCoder, formatUnits, getBytes, hexlify } from 'ethers'
 
 interface PayloadData {
@@ -17,8 +17,8 @@ interface ReportData {
   tokenFee: bigint
   expireTimeStamp: bigint
   midPrice: string
-  askPrice: string
   bidPrice: string
+  askPrice: string
 }
 
 const abiCoder = AbiCoder.defaultAbiCoder()
@@ -34,8 +34,8 @@ function parseReportData(report: Uint8Array): ReportData {
       'uint192', // tokenFee
       'uint32', // expireTimeStamp
       'uint192', // midPrice
-      'uint192', // askPrice
       'uint192', // bidPrice
+      'uint192', // askPrice
     ],
     hexReport,
   )
@@ -48,13 +48,13 @@ function parseReportData(report: Uint8Array): ReportData {
     tokenFee: decoded[4],
     expireTimeStamp: decoded[5],
     midPrice: formatUnits(decoded[6], 18),
-    askPrice: formatUnits(decoded[7], 18),
-    bidPrice: formatUnits(decoded[8], 18),
+    bidPrice: formatUnits(decoded[7], 18),
+    askPrice: formatUnits(decoded[8], 18),
   }
 }
 
-export class AproReportParser implements ReportParser<PayloadData> {
-  parse = (hexData: string) => {
+export class AproReportParser implements Parser<PayloadData> {
+  reportParse = (hexData: string) => {
     const decoded = abiCoder.decode(
       [
         'bytes32[3]', // reportContext

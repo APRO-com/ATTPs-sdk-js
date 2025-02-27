@@ -334,7 +334,7 @@ describe('report parser', () => {
     })
 
     // When
-    const report = attps.parseReport(hexData) as PayloadData
+    const report = attps.reportParse(hexData) as PayloadData
 
     // Then
     expect(report).toEqual({
@@ -351,8 +351,8 @@ describe('report parser', () => {
         tokenFee: 350000000000000000n,
         expireTimeStamp: 1734701235n,
         midPrice: '102121.2246',
-        askPrice: '102121.0936',
-        bidPrice: '102121.608',
+        bidPrice: '102121.0936',
+        askPrice: '102121.608',
       },
       rawRs: [
         '0xc8a690222d41257985869083494cac7642192d549c48a7ea58d27a9feb45d7f3',

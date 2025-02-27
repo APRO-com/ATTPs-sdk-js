@@ -1,4 +1,4 @@
-import type { ReportParser } from '../parser'
+import type { Parser } from '../parser'
 import { isAddress, isBytesLike } from 'ethers'
 import * as v from 'valibot'
 import { AproReportParser } from '../parser'
@@ -38,12 +38,12 @@ const TransactionOptionsSchema = v.optional(
   {},
 )
 
-function isReportParser<T>(value: unknown): value is ReportParser<T> {
+function isReportParser<T>(value: unknown): value is Parser<T> {
   return (
     typeof value === 'object'
     && value !== null
-    && 'parse' in value
-    && typeof (value as any).parse === 'function'
+    && 'reportParse' in value
+    && typeof (value as any).reportParse === 'function'
   )
 }
 
@@ -81,7 +81,7 @@ const ATTPsSDKPropsSchema = v.pipe(
         ),
       ),
       reportParser: v.optional(
-        v.custom<ReportParser<any>>(isReportParser, 'reportParser must be an instance of ReportParser'),
+        v.custom<Parser<any>>(isReportParser, 'reportParser must be an instance of Parser'),
         () => new AproReportParser(),
       ),
     }, 'agentSDKProps must be an object'),
