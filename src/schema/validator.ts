@@ -1,7 +1,7 @@
 import type { Parser } from '../parser'
 import { isAddress, isBytesLike } from 'ethers'
 import * as v from 'valibot'
-import { AproReportParser } from '../parser'
+import { AproParser } from '../parser'
 import { cleanHexPrefix, isValidUUIDV4, prependHexPrefix, standardizeV, uuidv4 } from '../utils'
 
 function ethAddressSchema(name: string) {
@@ -82,7 +82,7 @@ const ATTPsSDKPropsSchema = v.pipe(
       ),
       reportParser: v.optional(
         v.custom<Parser<any>>(isReportParser, 'reportParser must be an instance of Parser'),
-        () => new AproReportParser(),
+        () => new AproParser(),
       ),
     }, 'agentSDKProps must be an object'),
     {},

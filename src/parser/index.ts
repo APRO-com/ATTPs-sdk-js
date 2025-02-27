@@ -6,4 +6,4 @@ export {
   Parser,
 }
 
-export * from './apro-report-parser'
+export * from './apro-parser'

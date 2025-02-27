@@ -57,7 +57,7 @@ function parseReportData(report: Uint8Array): ReportData {
   }
 }
 
-export class AproReportParser implements Parser<PayloadData> {
+export class AproParser implements Parser<PayloadData> {
   reportParse = (hexData: string) => {
     const decoded = abiCoder.decode(
       [
