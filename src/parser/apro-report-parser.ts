@@ -1,12 +1,16 @@
 import type { Parser } from '.'
 import { AbiCoder, formatUnits, getBytes, hexlify } from 'ethers'
 
+interface Signature {
+  r: string
+  s: string
+  v: number
+}
+
 interface PayloadData {
   reportContext: string[]
   report: ReportData
-  rawRs: string[]
-  rawSs: string[]
-  rawVs: string
+  signatures: Signature[]
 }
 
 interface ReportData {
@@ -72,12 +76,20 @@ export class AproReportParser implements Parser<PayloadData> {
     const rawSs = decoded[3].map((s: string) => s)
     const rawVs = decoded[4]
 
+    const vsBytes = getBytes(rawVs)
+    const signatures: Signature[] = []
+    for (let i = 0; i < Math.min(rawRs.length, rawSs.length); i++) {
+      signatures.push({
+        r: rawRs[i],
+        s: rawSs[i],
+        v: i < vsBytes.length ? vsBytes[i] : 0,
+      })
+    }
+
     return {
       reportContext,
       report: parseReportData(report),
-      rawRs,
-      rawSs,
-      rawVs,
+      signatures,
     } as PayloadData
   }
 }
@@ -85,4 +97,5 @@ export class AproReportParser implements Parser<PayloadData> {
 export type {
   PayloadData,
   ReportData,
+  Signature,
 }
