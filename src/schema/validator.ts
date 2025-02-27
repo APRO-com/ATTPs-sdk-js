@@ -1,5 +1,7 @@
+import type { ReportParser } from '../parser'
 import { isAddress, isBytesLike } from 'ethers'
 import * as v from 'valibot'
+import { AproReportParser } from '../parser'
 import { cleanHexPrefix, isValidUUIDV4, prependHexPrefix, standardizeV, uuidv4 } from '../utils'
 
 function ethAddressSchema(name: string) {
@@ -36,6 +38,15 @@ const TransactionOptionsSchema = v.optional(
   {},
 )
 
+function isReportParser<T>(value: unknown): value is ReportParser<T> {
+  return (
+    typeof value === 'object'
+    && value !== null
+    && 'parse' in value
+    && typeof (value as any).parse === 'function'
+  )
+}
+
 const ATTPsSDKPropsSchema = v.pipe(
   v.optional(
     v.object({
@@ -68,6 +79,10 @@ const ATTPsSDKPropsSchema = v.pipe(
           v.trim(),
           v.regex(/^https?:\/\//, 'vrfBackendUrl must be a valid url, including http/https'),
         ),
+      ),
+      reportParser: v.optional(
+        v.custom<ReportParser<any>>(isReportParser, 'reportParser must be an instance of ReportParser'),
+        () => new AproReportParser(),
       ),
     }, 'agentSDKProps must be an object'),
     {},
